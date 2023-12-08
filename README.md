@@ -23,13 +23,13 @@ If you want to support and cheer for us, please star ⭐ our project.
 ### Recontextualization
 
 <p align="center">
-  <img src="https://photo-maker.github.io/assets/website_recontext.jpg">
+  <img src="https://photo-maker.github.io/assets/website_recontext_lowres.jpg">
 </p>
 
 ### Bringing a person in artwork/old photo into reality
 
 <p align="center">
-  <img src="https://photo-maker.github.io/assets/website_oldphoto.jpg">
+  <img src="https://photo-maker.github.io/assets/website_oldphoto_lowres.jpg">
 </p>
 
 ### Stylization
