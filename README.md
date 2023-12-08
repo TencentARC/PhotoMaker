@@ -7,7 +7,7 @@
 <div align="center">
   
 ## PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding
-[[Paper]()] &emsp; [[Project Page](https://photo-maker.github.io)] &emsp; [Demo] <be>
+[[Paper](https://arxiv.org/abs/2312.04461)] &emsp; [[Project Page](https://photo-maker.github.io)] &emsp; [Demo] <be>
 </div>
   
 <br>
