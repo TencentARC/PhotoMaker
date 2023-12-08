@@ -15,3 +15,14 @@
 <p align="center">
   <img src="https://photo-maker.github.io/assets/teaser.jpg">
 </p>
+
+## Citation	
+
+```
+@article{li2023photomaker,
+  title={PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding},
+  author={Li, Zhen and Cao, Mingdeng and Wang, Xintao and Qi, Zhongang and Cheng, Ming-Ming and Shan, Ying},
+  booktitle={arXiv preprint arxiv:2312.04461},
+  year={2023}
+}
+```
