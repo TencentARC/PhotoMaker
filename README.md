@@ -26,10 +26,20 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 
 
 ---
- <div align="center">
 
-![photomaker_demo_fast](https://github.com/TencentARC/PhotoMaker/assets/21050959/e72cbf4d-938f-417d-b308-55e76a4bc5c8)
+<div style="text-align: center;">
+  <video width=80% autoplay muted loop controls>
+    <source src="https://photo-maker.github.io/assets/photomaker_demo.mp4" type="video/mp4">
+  </video>
+  <br>
+  Note: The prompt displayed in the video is a simplified version.
 </div>
+
+
+<!-- <div align="center"> -->
+
+<!-- ![photomaker_demo_fast](https://github.com/TencentARC/PhotoMaker/assets/21050959/e72cbf4d-938f-417d-b308-55e76a4bc5c8) -->
+<!-- </div> -->
 
 
 ## 🚩 **New Features/Updates**
