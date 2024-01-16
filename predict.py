@@ -57,7 +57,7 @@ class Predictor(BasePredictor):
            trigger_word="img"
         )     
         
-        self.pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
+        self.pipe.scheduler = EulerDiscreteScheduler.from_config(self.pipe.scheduler.config)
         self.pipe.fuse_lora()
         logger.info(f"Loaded model in {time.time() - start:.06}s")
 
