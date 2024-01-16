@@ -20,12 +20,10 @@ from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
 
-def download_weights(url, dest):
+def download_weights(model = "photomaker-v1.bin"):
     start = time.time()
-    print("downloading url: ", url)
-    print("downloading to: ", dest)
-    subprocess.check_call(["pget", "-x", url, dest], close_fds=False)
-    print("downloading took: ", time.time() - start)
+    photomaker_path = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename=model, repo_type="model")
+    logger.info("downloading took: ", time.time() - start)
 
 def image_grid(imgs, rows, cols, size_after_resize):
     assert len(imgs) == rows*cols
@@ -41,7 +39,6 @@ def image_grid(imgs, rows, cols, size_after_resize):
     return grid
 
 base_model_path = 'SG161222/RealVisXL_V3.0'
-download_url = "https://huggingface.co/TencentARC/PhotoMaker/resolve/main/photomaker-v1.bin?download=true"
 photomaker_path = 'release_model/photomaker-v1.bin'
 device = "cuda"
 save_path = "./outputs"
@@ -53,7 +50,7 @@ class Predictor(BasePredictor):
         logger.info("Loading model...")
         
         if not os.path.exists(photomaker_path):
-            download_weights(download_url, photomaker_path)
+            download_weights()
             
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path, 
@@ -124,10 +121,4 @@ class Predictor(BasePredictor):
         
         grid = image_grid(images, 1, 4, size_after_resize=512)
         
-        
-        os.makedirs(save_path, exist_ok=True)
-        
-        for idx, image in enumerate(images):
-            image.save(os.path.join(save_path, f"photomaker_{idx:02d}.png"))
- 
         return grid
