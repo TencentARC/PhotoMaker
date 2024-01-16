@@ -143,6 +143,7 @@ class Predictor(BasePredictor):
         # randomize seed if necessary
         if seed is None:
             seed = random.randint(0, MAX_SEED)
+        print(f"Using seed {seed}...")
 
         # check the prompt for the trigger word
         image_token_id = self.pipe.tokenizer.convert_tokens_to_ids(self.pipe.trigger_word)
