@@ -7,12 +7,17 @@ import numpy as np
 import random
 import os
 from PIL import Image
+import logging
+import time
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
 from huggingface_hub import hf_hub_download
 
 from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger(__name__)
 
 def image_grid(imgs, rows, cols, size_after_resize):
     assert len(imgs) == rows*cols
@@ -35,6 +40,8 @@ save_path = "./outputs"
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
+        time = time.time()
+        logger.info("Loading model...")
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path, 
             torch_dtype=torch.bfloat16, 
@@ -51,6 +58,7 @@ class Predictor(BasePredictor):
         
         self.pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
         self.pipe.fuse_lora()
+        logger.info(f"Loaded model in {time.time() - time:.06}s")
 
     @torch.inference_mode()
     def predict(
@@ -83,7 +91,7 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         if seed is None:
             seed = int.from_bytes(os.urandom(4), "big")
-        print(f"Using seed: {seed}")
+        logger.info(f"Using seed: {seed}")
         generator = torch.Generator("cuda").manual_seed(seed)
 
         style_strength_ratio = 20
@@ -100,6 +108,13 @@ class Predictor(BasePredictor):
             start_merge_step=start_merge_step,
             generator=generator,
         ).images
-
-
-        return output_paths
+        
+        grid = image_grid(images, 1, 4, size_after_resize=512)
+        
+        
+        os.makedirs(save_path, exist_ok=True)
+        
+        for idx, image in enumerate(images):
+            image.save(os.path.join(save_path, f"photomaker_{idx:02d}.png"))
+ 
+        return grid
