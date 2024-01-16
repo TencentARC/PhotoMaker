@@ -10,6 +10,7 @@ from PIL import Image
 import logging
 import time
 from typing import List
+import shutil
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
@@ -19,23 +20,9 @@ from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
 
-def image_grid(imgs, rows, cols, size_after_resize):
-    assert len(imgs) == rows*cols
-
-    w, h = size_after_resize, size_after_resize
-    
-    grid = Image.new('RGB', size=(cols*w, rows*h))
-    grid_w, grid_h = grid.size
-    
-    for i, img in enumerate(imgs):
-        img = img.resize((w,h))
-        grid.paste(img, box=(i%cols*w, i//cols*h))
-    return grid
-
 base_model_path = 'SG161222/RealVisXL_V3.0'
 photomaker_path = 'release_model/photomaker-v1.bin'
 device = "cuda"
-save_path = "./outputs"
 
 class Predictor(BasePredictor):
     def setup(self) -> None:
@@ -60,6 +47,10 @@ class Predictor(BasePredictor):
         self.pipe.scheduler = EulerDiscreteScheduler.from_config(self.pipe.scheduler.config)
         self.pipe.fuse_lora()
         logger.info(f"Loaded model in {time.time() - start:.06}s")
+        
+    def _load_image(self, path):
+        shutil.copyfile(path, "/tmp/image.png")
+        return load_image("/tmp/image.png").convert("RGB")
 
     @torch.inference_mode()
     def predict(
@@ -96,26 +87,24 @@ class Predictor(BasePredictor):
         generator = torch.Generator("cuda").manual_seed(seed)
 
         style_strength_ratio = 20
-        start_merge_step = int(float(style_strength_ratio) / 100 * num_steps)
+        start_merge_step = int(float(style_strength_ratio) / 100 * num_inference_steps)
         if start_merge_step > 30:
             start_merge_step = 30
         
         images = self.pipe(
             prompt=prompt,
-            input_id_images=[load_image(image)],
+            input_id_images=[self._load_image(image)],
             negative_prompt=negative_prompt,
             num_images_per_prompt=num_outputs,
             num_inference_steps=num_inference_steps,
             start_merge_step=start_merge_step,
             generator=generator,
         ).images
-        
-        grid = image_grid(images, 1, 4, size_after_resize=512)
-        
-        
-        os.makedirs(save_path, exist_ok=True)
-        
-        for idx, image in enumerate(images):
-            image.save(os.path.join(save_path, f"photomaker_{idx:02d}.png"))
- 
-        return grid
+    
+        output_paths = []
+        for i, image in enumerate(images):
+            output_path = f"/tmp/out-{i}.png"
+            image.save(output_path)
+            output_paths.append(Path(output_path))
+
+        return output_paths
