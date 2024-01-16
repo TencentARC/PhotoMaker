@@ -21,7 +21,7 @@ build:
     - "transformers==4.36.2"
 
   run:
-    - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.0.3/pget" && chmod +x /usr/local/bin/pget
+    - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
 
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"

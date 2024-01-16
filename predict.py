@@ -8,18 +8,24 @@ import numpy as np
 import random
 import os
 import shutil
-from typing import List
+import subprocess
+from typing import List, Union
+import time
 
 os.environ["HF_HUB_CACHE"] = "models"
 os.environ["HF_HUB_CACHE_OFFLINE"] = "true"
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
+from diffusers.pipelines.stable_diffusion.safety_checker import (
+    StableDiffusionSafetyChecker,
+)
 
 from huggingface_hub import hf_hub_download
 # import spaces
 
 # import gradio as gr
+from transformers import CLIPImageProcessor
 
 from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
 from gradio_demo.style_template import styles
@@ -27,6 +33,18 @@ from gradio_demo.style_template import styles
 MAX_SEED = np.iinfo(np.int32).max
 STYLE_NAMES = list(styles.keys())
 DEFAULT_STYLE_NAME = "Photographic (Default)"
+
+FEATURE_EXTRACTOR = "./feature-extractor"
+SAFETY_CACHE = "./safety-cache"
+SAFETY_URL = "https://weights.replicate.delivery/default/sdxl/safety-1.0.tar"
+
+def download_weights(url, dest):
+    start = time.time()
+    print("downloading url: ", url)
+    print("downloading to: ", dest)
+    subprocess.check_call(["pget", "-x", url, dest], close_fds=False)
+    print("downloading took: ", time.time() - start)
+
 
 # utility function for style templates
 def apply_style(style_name: str, positive: str, negative: str = "") -> tuple[str, str]:
@@ -41,8 +59,6 @@ class Predictor(BasePredictor):
         base_model_path = "SG161222/RealVisXL_V3.0"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-
-
         # download PhotoMaker checkpoint to cache
         # if we already have the model, this doesn't do anything
         photomaker_ckpt = hf_hub_download(
@@ -50,6 +66,14 @@ class Predictor(BasePredictor):
             filename="photomaker-v1.bin",
             repo_type="model",
         )
+
+        print("Loading safety checker...")
+        if not os.path.exists(SAFETY_CACHE):
+            download_weights(SAFETY_URL, SAFETY_CACHE)
+        self.safety_checker = StableDiffusionSafetyChecker.from_pretrained(
+            SAFETY_CACHE, torch_dtype=torch.float16
+        ).to("cuda")
+        self.feature_extractor = CLIPImageProcessor.from_pretrained(FEATURE_EXTRACTOR)
 
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path,
@@ -71,6 +95,7 @@ class Predictor(BasePredictor):
         # pipe.set_adapters(["photomaker"], adapter_weights=[1.0])
         self.pipe.fuse_lora()
 
+    @torch.inference_mode()
     def predict(
         self,
         # from ChatGPT
@@ -102,7 +127,11 @@ class Predictor(BasePredictor):
         guidance_scale: float = Input(
             description="Guidance scale", default=5, ge=0.1, le=10.0
         ),
-        seed: int = Input(description="Seed. Leave blank to use a random number", default=None, ge=0, le=MAX_SEED)
+        seed: int = Input(description="Seed. Leave blank to use a random number", default=None, ge=0, le=MAX_SEED),
+        disable_safety_checker: bool = Input(
+            description="Disable safety checker for generated images. This feature is only available through the API. See [https://replicate.com/docs/how-does-replicate-work#safety](https://replicate.com/docs/how-does-replicate-work#safety)",
+            default=False
+        )
     ) -> List[Path]:
         """Run a single prediction on the model"""
         # remove old outputs
@@ -151,11 +180,28 @@ class Predictor(BasePredictor):
             generator=generator,
             guidance_scale=guidance_scale,
         ).images
-        
+
+        if not disable_safety_checker:
+            _, has_nsfw_content = self.run_safety_checker(images)
         # save results to file
         output_paths = []
         for i, image in enumerate(images):
+            if not disable_safety_checker:
+                if has_nsfw_content[i]:
+                    print(f"NSFW content detected in image {i}")
+                    continue
             output_path = output_folder / f"image_{i}.png"
             image.save(output_path)
             output_paths.append(output_path)
         return [Path(p) for p in output_paths]
+
+    def run_safety_checker(self, image):
+        safety_checker_input = self.feature_extractor(image, return_tensors="pt").to(
+            "cuda"
+        )
+        np_image = [np.array(val) for val in image]
+        image, has_nsfw_concept = self.safety_checker(
+            images=np_image,
+            clip_input=safety_checker_input.pixel_values.to(torch.float16),
+        )
+        return image, has_nsfw_concept

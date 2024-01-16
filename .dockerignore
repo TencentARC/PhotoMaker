@@ -18,3 +18,6 @@ __pycache__
 
 # Exclude output files
 /outputs
+
+# Exclude cache of NSFW-checker
+safety-cache
