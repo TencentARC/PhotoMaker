@@ -13,17 +13,11 @@ from typing import List
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
-from huggingface_hub import hf_hub_download
 
 from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
-
-def download_weights(model = "photomaker-v1.bin"):
-    start = time.time()
-    photomaker_path = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename=model, repo_type="model")
-    logger.info("downloading took: ", time.time() - start)
 
 def image_grid(imgs, rows, cols, size_after_resize):
     assert len(imgs) == rows*cols
@@ -48,10 +42,7 @@ class Predictor(BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
         start = time.time()
         logger.info("Loading model...")
-        
-        if not os.path.exists(photomaker_path):
-            download_weights()
-            
+
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path, 
             torch_dtype=torch.bfloat16, 
@@ -109,7 +100,7 @@ class Predictor(BasePredictor):
         if start_merge_step > 30:
             start_merge_step = 30
         
-        images = pipe(
+        images = self.pipe(
             prompt=prompt,
             input_id_images=[load_image(image)],
             negative_prompt=negative_prompt,
@@ -121,4 +112,10 @@ class Predictor(BasePredictor):
         
         grid = image_grid(images, 1, 4, size_after_resize=512)
         
+        
+        os.makedirs(save_path, exist_ok=True)
+        
+        for idx, image in enumerate(images):
+            image.save(os.path.join(save_path, f"photomaker_{idx:02d}.png"))
+ 
         return grid
