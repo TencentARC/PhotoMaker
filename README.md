@@ -175,7 +175,7 @@ python gradio_demo/app.py
 
 You could customize this script in [this file](gradio_demo/app.py).
 
-If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md) and then rn the app.py.
+If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md) and then run the app.py.
 
 ## Usage Tips:
 - Upload more photos of the person to be customized to improve ID fidelty. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
