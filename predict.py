@@ -9,6 +9,7 @@ import os
 from PIL import Image
 import logging
 import time
+from typing import List
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
@@ -40,13 +41,13 @@ save_path = "./outputs"
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
-        time = time.time()
+        start = time.time()
         logger.info("Loading model...")
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path, 
             torch_dtype=torch.bfloat16, 
             use_safetensors=True, 
-            variant="fp16",
+            variant="fp16"
         ).to(device)
         
         self.pipe.load_photomaker_adapter(
@@ -58,7 +59,7 @@ class Predictor(BasePredictor):
         
         self.pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
         self.pipe.fuse_lora()
-        logger.info(f"Loaded model in {time.time() - time:.06}s")
+        logger.info(f"Loaded model in {time.time() - start:.06}s")
 
     @torch.inference_mode()
     def predict(
