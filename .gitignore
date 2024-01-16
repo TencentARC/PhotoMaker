@@ -3,5 +3,6 @@ civitai_models/
 gradio_cached_examples/
 outputs/
 __pycache__/
+.idea/
 *.bin
 *.safetensors

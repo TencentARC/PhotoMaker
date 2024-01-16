@@ -2,6 +2,9 @@ import torch
 import numpy as np
 import random
 import os
+import sys
+parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0,parentdir)
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
@@ -11,11 +14,21 @@ import spaces
 import gradio as gr
 
 from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
-from style_template import styles
+from gradio_demo.style_template import styles
 
 # global variable
 base_model_path = 'SG161222/RealVisXL_V3.0'
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+try:
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif sys.platform == "darwin" and torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
+except:
+    device = "cpu"
+
 MAX_SEED = np.iinfo(np.int32).max
 STYLE_NAMES = list(styles.keys())
 DEFAULT_STYLE_NAME = "Photographic (Default)"
@@ -23,9 +36,13 @@ DEFAULT_STYLE_NAME = "Photographic (Default)"
 # download PhotoMaker checkpoint to cache
 photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v1.bin", repo_type="model")
 
+if device == "mps":
+    torch_dtype = torch.float16
+else:
+    torch_dtype = torch.bfloat16
 pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
     base_model_path, 
-    torch_dtype=torch.bfloat16, 
+    torch_dtype=torch_dtype,
     use_safetensors=True, 
     variant="fp16",
 ).to(device)
@@ -99,7 +116,7 @@ def randomize_seed_fn(seed: int, randomize_seed: bool) -> int:
         seed = random.randint(0, MAX_SEED)
     return seed
 
-def apply_style(style_name: str, positive: str, negative: str = "") -> tuple[str, str]:
+def apply_style(style_name: str, positive: str, negative: str = ""):
     p, n = styles.get(style_name, styles[DEFAULT_STYLE_NAME])
     return p.replace("{prompt}", positive), n + ' ' + negative
 
