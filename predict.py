@@ -20,6 +20,13 @@ from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
 
+def download_weights(url, dest):
+    start = time.time()
+    print("downloading url: ", url)
+    print("downloading to: ", dest)
+    subprocess.check_call(["pget", "-x", url, dest], close_fds=False)
+    print("downloading took: ", time.time() - start)
+
 def image_grid(imgs, rows, cols, size_after_resize):
     assert len(imgs) == rows*cols
 
@@ -34,6 +41,7 @@ def image_grid(imgs, rows, cols, size_after_resize):
     return grid
 
 base_model_path = 'SG161222/RealVisXL_V3.0'
+download_url = "https://huggingface.co/TencentARC/PhotoMaker/resolve/main/photomaker-v1.bin?download=true"
 photomaker_path = 'release_model/photomaker-v1.bin'
 device = "cuda"
 save_path = "./outputs"
@@ -43,6 +51,10 @@ class Predictor(BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
         start = time.time()
         logger.info("Loading model...")
+        
+        if not os.path.exists(photomaker_path):
+            download_weights(download_url, photomaker_path)
+            
         self.pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
             base_model_path, 
             torch_dtype=torch.bfloat16, 
