@@ -1,0 +1,17 @@
+build:
+  gpu: true
+  cuda: "11.7"
+  python_version: "3.8"
+  python_packages:
+    - "torch==2.0.1"
+    - "torchvision==0.15.2"
+    - "diffusers==0.25.0"
+    - "transformers==4.36.2"
+    - "huggingface-hub==0.20.2"
+    - "numpy"
+    - "accelerate"
+    - "safetensors"
+    - "omegaconf"
+    - "peft"
+# predict.py defines how predictions are run on your model
+predict: "predict.py:Predictor"
