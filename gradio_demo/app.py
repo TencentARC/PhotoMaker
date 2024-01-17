@@ -10,7 +10,7 @@ from huggingface_hub import hf_hub_download
 import spaces
 import gradio as gr
 
-from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
+from photomaker import PhotoMakerStableDiffusionXLPipeline
 from style_template import styles
 
 # global variable
@@ -28,6 +28,7 @@ pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
     torch_dtype=torch.bfloat16, 
     use_safetensors=True, 
     variant="fp16",
+    # local_files_only=True,
 ).to(device)
 
 pipe.load_photomaker_adapter(
@@ -35,7 +36,8 @@ pipe.load_photomaker_adapter(
     subfolder="",
     weight_name=os.path.basename(photomaker_ckpt),
     trigger_word="img"
-)     
+)
+pipe.id_encoder.to(device)
 
 pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
 # pipe.set_adapters(["photomaker"], adapter_weights=[1.0])
@@ -282,4 +284,4 @@ with gr.Blocks(css=css) as demo:
     
     gr.Markdown(article)
     
-demo.launch()
+demo.launch(share=False)
