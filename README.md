@@ -25,8 +25,9 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 2. Ensures impressive ID fidelity, offering diversity, promising text controllability, and high-quality generation.
 3. Can serve as an **Adapter** to collaborate with other Base Models alongside LoRA modules in community.
 
-
 ---
+
+❗❗ Note: If there are any PhotoMaker based resources and applications, please stay in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the README.
 
 <div align="center">
 
@@ -75,7 +76,20 @@ Note: only change the base model and add the LoRA modules for better stylization
 - Python >= 3.8 (Recommend to use [Anaconda](https://www.anaconda.com/download/#linux) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html))
 - [PyTorch >= 2.0.0](https://pytorch.org/)
 ```bash
+conda create --name photomaker python=3.10
+conda activate photomaker
+pip install -U pip
+
+# Install requirements
 pip install -r requirements.txt
+
+# Install photomaker
+pip install git+https://github.com/TencentARC/PhotoMaker.git
+```
+
+Then you can run the following command to use it
+```python
+from photomaker import PhotoMakerStableDiffusionXLPipeline
 ```
 
 # ⏬ Download Models 
@@ -98,7 +112,7 @@ import torch
 import os
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
-from photomaker.pipeline import PhotoMakerStableDiffusionXLPipeline
+from photomaker import PhotoMakerStableDiffusionXLPipeline
 
 ### Load base model
 pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
@@ -183,9 +197,10 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 - For faster speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
 
 # 🤗 Acknowledgements
-- T2I-Adapter is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
+- PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
 - Inspired from many excellent demos and repos, including [IP-Adapter](https://github.com/tencent-ailab/IP-Adapter), [multimodalart/Ip-Adapter-FaceID](https://huggingface.co/spaces/multimodalart/Ip-Adapter-FaceID), [FastComposer](https://github.com/mit-han-lab/fastcomposer), and [T2I-Adapter](https://github.com/TencentARC/T2I-Adapter). Thanks for their great works!
 - Thanks for Venus team in Tencent PCG for their feedback and suggestions.
+- Thanks for HuggingFace team for their generous support! 
 
 # Disclaimer
 This project strives to positively impact the domain of AI-driven image generation. Users are granted the freedom to create images using this tool, but they are expected to comply with local laws and utilize it in a responsible manner. The developers do not assume any responsibility for potential misuse by users.
