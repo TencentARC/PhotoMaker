@@ -169,7 +169,8 @@ gen_images.save('out_photomaker.png')
 ## Start a local gradio demo
 Run the following command:
 
-```python
+```bash
+export PYTHONPATH="/path/to/project:$PYTHONPATH"
 python gradio_demo/app.py
 ```
 
