@@ -27,6 +27,8 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 
 ---
 
+❗❗ Note: If there are any PhotoMaker based resources and applications, please stay in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the README.
+
 <div align="center">
 
 ![photomaker_demo_fast](https://github.com/TencentARC/PhotoMaker/assets/21050959/e72cbf4d-938f-417d-b308-55e76a4bc5c8)
