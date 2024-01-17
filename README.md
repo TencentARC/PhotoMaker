@@ -75,6 +75,7 @@ Note: only change the base model and add the LoRA modules for better stylization
 - [PyTorch >= 2.0.0](https://pytorch.org/)
 ```bash
 conda create --name photomaker python=3.10
+conda activate photomaker
 pip install -U pip
 
 # Install requirements
