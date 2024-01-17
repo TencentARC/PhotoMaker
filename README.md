@@ -27,7 +27,7 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 
 ---
 
-❗❗ Note: If there are any PhotoMaker based resources and applications, please stay in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the README.
+❗❗ Note: If there are any PhotoMaker based resources and applications, please leave them in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the [Related Resources](https://github.com/TencentARC/PhotoMaker?tab=readme-ov-file#related-resources) section in README file.
 
 <div align="center">
 
@@ -193,6 +193,10 @@ You could customize this script in [this file](gradio_demo/app.py).
 - Upload more photos of the person to be customized to improve ID fidelty. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
 - When stylizing, does the generated face look too realistic? Adjust the Style strength to 30-50, the larger the number, the less ID fidelty, but the stylization ability will be better. You could also try out other base models or LoRAs with good stylization effects.
 - For faster speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
+
+# Related Resources
+- [Replicate demo of PhotoMaker](https://replicate.com/jd7h/photomaker) by [@yorickvP](https://github.com/yorickvP), transfer PhotoMaker to replicate.
+- [Windows version of PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
 
 # 🤗 Acknowledgements
 - PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
