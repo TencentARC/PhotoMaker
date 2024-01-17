@@ -12,8 +12,8 @@ xcode-select --install
 brew install llvm libomp
 ```
 
-3. 'requirements_for_mac.txt' instead of 'requirements.txt'
+3. Install torch 2.1.2
 
 ```
-pip install -r requirements_for_mac.txt
+pip install torch==2.1.2
 ```
