@@ -93,7 +93,7 @@ from photomaker import PhotoMakerStableDiffusionXLPipeline
 ```
 
 # ⏬ Download Models 
-The model will be automatically downloaded through following two lines:
+The model will be automatically downloaded through the following two lines:
 
 ```python
 from huggingface_hub import hf_hub_download
