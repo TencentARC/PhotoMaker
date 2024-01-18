@@ -131,7 +131,7 @@ class Predictor(BasePredictor):
             default="nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
         ),
         num_steps: int = Input(
-            description="Number of sample steps", default=50, ge=20, le=100
+            description="Number of sample steps", default=20, ge=1, le=100
         ),
         style_strength_ratio: float = Input(
             description="Style strength (%)", default=20, ge=15, le=50
@@ -144,7 +144,7 @@ class Predictor(BasePredictor):
         ),
         seed: int = Input(description="Seed. Leave blank to use a random number", default=None, ge=0, le=MAX_SEED),
         disable_safety_checker: bool = Input(
-            description="Disable safety checker for generated images. This feature is only available through the API. See [https://replicate.com/docs/how-does-replicate-work#safety](https://replicate.com/docs/how-does-replicate-work#safety)",
+            description="Disable safety checker for generated images.",
             default=False
         )
     ) -> list[Path]:
