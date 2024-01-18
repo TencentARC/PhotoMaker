@@ -179,8 +179,10 @@ class Predictor(BasePredictor):
         input_id_images = []
         for maybe_image in [input_image, input_image2, input_image3, input_image4]:
           if maybe_image:
+            print(f"Loading image {maybe_image}...")
             input_id_images.append(load_image(str(maybe_image)))
 
+        print(f"Setting seed...")
         generator = torch.Generator(device=self.device).manual_seed(seed)
 
         print("Start inference...")
@@ -189,7 +191,7 @@ class Predictor(BasePredictor):
         start_merge_step = int(float(style_strength_ratio) / 100 * num_steps)
         if start_merge_step > 30:
             start_merge_step = 30
-        print(start_merge_step)
+        print(f"Start merge step: {start_merge_step}")
         images = self.pipe(
             prompt=prompt,
             input_id_images=input_id_images,
@@ -202,8 +204,10 @@ class Predictor(BasePredictor):
         ).images
 
         if not disable_safety_checker:
+            print(f"Running safety checker...")
             _, has_nsfw_content = self.run_safety_checker(images)
         # save results to file
+        print(f"Saving images to file...")
         output_paths = []
         for i, image in enumerate(images):
             if not disable_safety_checker:
