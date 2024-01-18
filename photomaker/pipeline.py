@@ -344,7 +344,11 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         )
         
         # 4. Encode input prompt without the trigger word for delayed conditioning
-        prompt_text_only = prompt.replace(" "+self.trigger_word, "") # sensitive to white space
+        # encode, remove trigger word token, then decode
+        tokens_text_only = self.tokenizer.encode(prompt, add_special_tokens=False)
+        trigger_word_token = self.tokenizer.convert_tokens_to_ids(self.trigger_word)
+        tokens_text_only.remove(trigger_word_token)
+        prompt_text_only = self.tokenizer.decode(tokens_text_only, add_special_tokens=False)
         (
             prompt_embeds_text_only,
             negative_prompt_embeds,
