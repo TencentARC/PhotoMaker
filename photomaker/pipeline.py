@@ -344,7 +344,15 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         )
         
         # 4. Encode input prompt without the trigger word for delayed conditioning
-        prompt_text_only = prompt.replace(" "+self.trigger_word, "") # sensitive to white space
+
+        tokens = self.tokenizer.encode(prompt, return_tensors="pt")
+        trigger_word_token = self.tokenizer.encode(self.trigger_word, return_tensors="pt")[0, 0]
+        trigger_word_index = (tokens[0] == trigger_word_token).nonzero()
+        if trigger_word_index.numel() > 0:
+            tokens = torch.cat((tokens[:, :trigger_word_index], tokens[:, trigger_word_index + 1:]), dim=1)
+            prompt_text_only = self.tokenizer.decode(tokens[0].tolist())
+        else:
+            prompt_text_only = prompt
         (
             prompt_embeds_text_only,
             negative_prompt_embeds,
