@@ -3,8 +3,6 @@ import numpy as np
 import random
 import os
 import sys
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0,parentdir)
 
 from diffusers.utils import load_image
 from diffusers import EulerDiscreteScheduler
@@ -18,7 +16,6 @@ from style_template import styles
 
 # global variable
 base_model_path = 'SG161222/RealVisXL_V3.0'
-# device = "cuda" if torch.cuda.is_available() else "cpu"
 try:
     if torch.cuda.is_available():
         device = "cuda"
