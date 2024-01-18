@@ -9,4 +9,4 @@ accelerate
 safetensors
 omegaconf
 peft
-gradio
+gradio>=4.0.0
