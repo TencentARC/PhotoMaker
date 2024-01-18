@@ -192,8 +192,8 @@ You could customize this script in [this file](gradio_demo/app.py).
 If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md) and then run the app.py.
 
 ## Usage Tips:
-- Upload more photos of the person to be customized to improve ID fidelty. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
-- When stylizing, does the generated face look too realistic? Adjust the Style strength to 30-50, the larger the number, the less ID fidelty, but the stylization ability will be better. You could also try out other base models or LoRAs with good stylization effects.
+- Upload more photos of the person to be customized to improve ID fidelity. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
+- When stylizing, does the generated face look too realistic? Adjust the Style strength to 30-50, the larger the number, the less ID fidelity, but the stylization ability will be better. You could also try out other base models or LoRAs with good stylization effects.
 - For faster speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
 
 # Related Resources
