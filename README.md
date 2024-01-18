@@ -193,9 +193,9 @@ You could customize this script in [this file](gradio_demo/app.py).
 If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md) and then run the app.py.
 
 ## Usage Tips:
-- Upload more photos of the person to be customized to improve ID fidelity. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
+- Upload more photos of the person to be customized to improve ID fidelity. If the input is Asian face(s), maybe consider adding 'Asian' before the class word, e.g., `Asian woman img`
 - When stylizing, does the generated face look too realistic? Adjust the Style strength to 30-50, the larger the number, the less ID fidelity, but the stylization ability will be better. You could also try out other base models or LoRAs with good stylization effects.
-- For faster speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
+- Reduce the number of generated images and sampling steps for faster speed. However, please keep in mind that reducing the sampling steps may compromise the ID fidelity.
 
 # Related Resources
 ### Replicate demo of PhotoMaker: 
@@ -211,20 +211,20 @@ Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
 
 # 🤗 Acknowledgements
 - PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
-- Inspired from many excellent demos and repos, including [IP-Adapter](https://github.com/tencent-ailab/IP-Adapter), [multimodalart/Ip-Adapter-FaceID](https://huggingface.co/spaces/multimodalart/Ip-Adapter-FaceID), [FastComposer](https://github.com/mit-han-lab/fastcomposer), and [T2I-Adapter](https://github.com/TencentARC/T2I-Adapter). Thanks for their great works!
-- Thanks for Venus team in Tencent PCG for their feedback and suggestions.
-- Thanks for HuggingFace team for their generous support! 
+- Inspired from many excellent demos and repos, including [IP-Adapter](https://github.com/tencent-ailab/IP-Adapter), [multimodalart/Ip-Adapter-FaceID](https://huggingface.co/spaces/multimodalart/Ip-Adapter-FaceID), [FastComposer](https://github.com/mit-han-lab/fastcomposer), and [T2I-Adapter](https://github.com/TencentARC/T2I-Adapter). Thanks for their great work!
+- Thanks to the Venus team in Tencent PCG for their feedback and suggestions.
+- Thanks to the HuggingFace team for their generous support! 
 
 # Disclaimer
-This project strives to positively impact the domain of AI-driven image generation. Users are granted the freedom to create images using this tool, but they are expected to comply with local laws and utilize it in a responsible manner. The developers do not assume any responsibility for potential misuse by users.
+This project strives to impact the domain of AI-driven image generation positively. Users are granted the freedom to create images using this tool, but they are expected to comply with local laws and utilize it responsibly. The developers do not assume any responsibility for potential misuse by users.
 
 # BibTeX
 If you find PhotoMaker useful for your research and applications, please cite using this BibTeX:
 
-```bibtex
+```BibTeX
 @article{li2023photomaker,
   title={PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding},
-  author={Li, Zhen and Cao, Mingdeng and Wang, Xintao and Qi, Zhongang and Cheng, Ming-Ming and Shan, Ying},
+  author={Li, Zhen and Cao, Mingdeng and Wang, Xintao, and Qi, Zhongang and Cheng, Ming-Ming, and Shan, Ying},
   booktitle={arXiv preprint arxiv:2312.04461},
   year={2023}
 }
