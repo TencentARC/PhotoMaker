@@ -28,6 +28,7 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 ---
 
 ❗❗ Note: If there are any PhotoMaker based resources and applications, please leave them in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the [Related Resources](https://github.com/TencentARC/PhotoMaker?tab=readme-ov-file#related-resources) section in README file.
+Now we know the implementation of **Replicate**, **Windows**, **ComfyUI**, and **WebUI**. Thank you all! 
 
 <div align="center">
 
@@ -197,8 +198,16 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 - For faster speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
 
 # Related Resources
-- [Replicate demo of PhotoMaker](https://replicate.com/jd7h/photomaker) by [@yorickvP](https://github.com/yorickvP), transfer PhotoMaker to replicate.
-- [Windows version of PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
+### Replicate demo of PhotoMaker: 
+[Demo link](https://replicate.com/jd7h/photomaker) by [@yorickvP](https://github.com/yorickvP), transfer PhotoMaker to replicate.
+### Windows version of PhotoMaker: 
+1. [bmaltais/PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
+2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/bmaltais).
+### ComfyUI:
+1. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
+2. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
+### Graido demo in 45 lines
+Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
 
 # 🤗 Acknowledgements
 - PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
