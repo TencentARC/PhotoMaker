@@ -140,7 +140,7 @@ class Predictor(BasePredictor):
             description="Number of output images", default=1, ge=1, le=4
         ),
         guidance_scale: float = Input(
-            description="Guidance scale", default=5, ge=0.1, le=10.0
+            description="Guidance scale. A guidance scale of 1 corresponds to doing no classifier free guidance.", default=5, ge=1, le=10.0
         ),
         seed: int = Input(description="Seed. Leave blank to use a random number", default=None, ge=0, le=MAX_SEED),
         disable_safety_checker: bool = Input(
