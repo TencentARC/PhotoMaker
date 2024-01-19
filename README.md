@@ -206,6 +206,8 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 ### ComfyUI:
 1. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
 2. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
+3. https://github.com/shiimizu/ComfyUI-PhotoMaker
+
 ### Graido demo in 45 lines
 Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
 
