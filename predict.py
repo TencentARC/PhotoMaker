@@ -122,12 +122,12 @@ class Predictor(BasePredictor):
             default="A photo of a person img",
         ),
         style_name: str = Input(
-            description="Style template",
+            description="Style template. The style template will add a style-specific prompt and negative prompt to the user's prompt.",
             choices=STYLE_NAMES,
             default=DEFAULT_STYLE_NAME,
         ),
         negative_prompt: str = Input(
-            description="Negative Prompt",
+            description="Negative Prompt. The negative prompt should NOT contain the trigger word.",
             default="nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
         ),
         num_steps: int = Input(
@@ -171,6 +171,14 @@ class Predictor(BasePredictor):
             raise ValueError(
                 f"Cannot use multiple trigger words '{self.pipe.trigger_word}' in text prompt!"
             )
+
+        # check the negative prompt for the trigger word
+        if negative_prompt:
+            negative_prompt_ids = self.pipe.tokenizer.encode(negative_prompt)
+            if image_token_id in negative_prompt_ids:
+                raise ValueError(
+                    f"Cannot use trigger word '{self.pipe.trigger_word}' in negative prompt!"
+                )
 
         # apply the style template
         prompt, negative_prompt = apply_style(style_name, prompt, negative_prompt)
