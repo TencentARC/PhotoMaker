@@ -226,7 +226,7 @@ If you find PhotoMaker useful for your research and applications, please cite us
 ```BibTeX
 @article{li2023photomaker,
   title={PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding},
-  author={Li, Zhen and Cao, Mingdeng and Wang, Xintao, and Qi, Zhongang and Cheng, Ming-Ming, and Shan, Ying},
+  author={Li, Zhen and Cao, Mingdeng and Wang, Xintao and Qi, Zhongang and Cheng, Ming-Ming and Shan, Ying},
   booktitle={arXiv preprint arxiv:2312.04461},
   year={2023}
 }
