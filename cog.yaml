@@ -1,17 +1,30 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+
 build:
+  # set to true if your model requires a GPU
   gpu: true
-  cuda: "11.7"
-  python_version: "3.8"
+
+  # python version in the form '3.11' or '3.11.4'
+  python_version: "3.11"
+
   python_packages:
-    - "torch==2.0.1"
-    - "torchvision==0.15.2"
+    - "accelerate==0.26.1"
     - "diffusers==0.25.0"
-    - "transformers==4.36.2"
     - "huggingface-hub==0.20.2"
-    - "numpy"
-    - "accelerate"
-    - "safetensors"
-    - "omegaconf"
-    - "peft"
+    - "numpy==1.24.4"
+    - "omegaconf==2.3.0"
+    - "peft==0.7.1"
+    - "safetensors==0.4.1"
+    - "torch==2.1.1"
+    - "torchvision==0.16.1"
+    - "transformers==4.36.2"
+
+  run:
+    - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
+
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"
+
+image: r8.im/tencentarc/photomaker
+
