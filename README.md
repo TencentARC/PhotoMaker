@@ -39,6 +39,7 @@ Now we know the implementation of **Replicate**, **Windows**, **ComfyUI**, and *
 
 
 ## 🚩 **New Features/Updates**
+- ✅ Jan. 20, 2024. An **important** note: For those GPUs that do not support bfloat16, please change [this line](https://github.com/TencentARC/PhotoMaker/blob/6ec44fc13909d64a65c635b9e3b6f238eb1de9fe/gradio_demo/app.py#L39) to `torch_dtype = torch.float16`, the speed will be greatly improved (1min (before) vs. 14s (after)). The minimum GPU memory requirement for PhotoMaker is **15G**.
 - ✅ Jan. 15, 2024. We release PhotoMaker.
 
 ---
