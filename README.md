@@ -215,7 +215,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 3. https://github.com/shiimizu/ComfyUI-PhotoMaker
 
 ### Other Applications / Web Demos
-1. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](camenduru)
+1. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
 2. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
 2. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
 
