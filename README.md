@@ -202,19 +202,26 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 
 # Related Resources
 ### Replicate demo of PhotoMaker: 
-1. [Demo link](https://replicate.com/jd7h/photomaker), run PhotoMaker on replicate. 
+1. [Demo link](https://replicate.com/jd7h/photomaker), run PhotoMaker on replicate, provided by [@yorickvP](https://github.com/yorickvP).
 2. [Demo link (style version)](https://replicate.com/yorickvp/photomaker-style).
 
 ### Windows version of PhotoMaker: 
 1. [bmaltais/PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
 2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/bmaltais).
+   
 ### ComfyUI:
 1. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
 2. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
 3. https://github.com/shiimizu/ComfyUI-PhotoMaker
 
+### Other Applications / Web Demos
+1. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](camenduru)
+2. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
+2. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
+
 ### Graido demo in 45 lines
 Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
+
 
 # 🤗 Acknowledgements
 - PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
