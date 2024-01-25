@@ -210,9 +210,10 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/bmaltais).
    
 ### ComfyUI:
-1. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
-2. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
-3. https://github.com/shiimizu/ComfyUI-PhotoMaker
+1. 🔥 **Official Implementation by [ComfyUI](https://github.com/comfyanonymous/ComfyUI)**: https://github.com/comfyanonymous/ComfyUI/commit/d1533d9c0f1dde192f738ef1b745b15f49f41e02
+2. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
+3. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
+4. https://github.com/shiimizu/ComfyUI-PhotoMaker
 
 ### Other Applications / Web Demos
 1. **OpenXLab (Easy to use in China)**: https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker
