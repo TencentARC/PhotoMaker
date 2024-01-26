@@ -216,12 +216,13 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 4. https://github.com/shiimizu/ComfyUI-PhotoMaker
 
 ### Other Applications / Web Demos
-1. **OpenXLab (Easy to use in China)**: https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker
+1. **Wisemodel 始智 (Easy to use in China)** https://wisemodel.cn/space/gradio/photomaker 
+2. **OpenXLab (Easy to use in China)**: https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker
  [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker)
 by [@camenduru](https://github.com/camenduru).
-2. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
-3. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
-4. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
+3. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
+4. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
+5. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
 
 ### Graido demo in 45 lines
 Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
