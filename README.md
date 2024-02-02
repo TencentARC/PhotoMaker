@@ -220,7 +220,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 2. **OpenXLab (Easy to use in China)**: https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker
  [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker)
 by [@camenduru](https://github.com/camenduru).
-3. **Fooocus App**: https://github.com/machineminded/Fooocus-inswapper/tree/feature/photomaker provided by [@machineminded](https://github.com/machineminded)
+3. **Fooocus App**: [https://github.com/machineminded/Fooocus-inswapper/tree/feature/photomaker](https://github.com/machineminded/Fooocus-inswapper) provided by [@machineminded](https://github.com/machineminded)
 4. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
 5. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
 6. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
