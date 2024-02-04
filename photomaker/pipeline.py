@@ -300,6 +300,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             negative_prompt_embeds,
             pooled_prompt_embeds,
             negative_pooled_prompt_embeds,
+            callback_on_step_end_tensor_inputs,
         )
 
         self._interrupt = False 
@@ -495,7 +496,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                     progress_bar.update()
                     if callback is not None and i % callback_steps == 0:
-                        callback(i, t, latents)
+                        step_idx = i // getattr(self.scheduler, "order", 1)
+                        callback(step_idx, t, latents)
 
         # make sure the VAE is in float32 mode, as it overflows in float16
         if self.vae.dtype == torch.float16 and self.vae.config.force_upcast:
@@ -514,9 +516,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
         image = self.image_processor.postprocess(image, output_type=output_type)
 
-        # Offload last model to CPU
-        if hasattr(self, "final_offload_hook") and self.final_offload_hook is not None:
-            self.final_offload_hook.offload()
+        # Offload all models
+        self.maybe_free_model_hooks()
 
         if not return_dict:
             return (image,)
