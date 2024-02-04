@@ -216,6 +216,9 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
         return prompt_embeds, pooled_prompt_embeds, class_tokens_mask
 
+    @property
+    def interrupt(self):
+        return self._interrupt
 
     @torch.no_grad()
     def __call__(
@@ -246,6 +249,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         target_size: Optional[Tuple[int, int]] = None,
         callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
         callback_steps: int = 1,
+        callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
+        callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         # Added parameters (for PhotoMaker)
         input_id_images: PipelineImageInput = None,
         start_merge_step: int = 0, # TODO: change to `style_strength_ratio` in the future
@@ -296,6 +301,9 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             pooled_prompt_embeds,
             negative_pooled_prompt_embeds,
         )
+
+        self._interrupt = False 
+
         #        
         if prompt_embeds is not None and class_tokens_mask is None:
             raise ValueError(
@@ -426,6 +434,9 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
+                if self.interrupt:
+                    continue
+
                 latent_model_input = (
                     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 )
@@ -463,6 +474,22 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
                 # compute the previous noisy sample x_t -> x_t-1
                 latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
+
+                if callback_on_step_end is not None:
+                    callback_kwargs = {}
+                    for k in callback_on_step_end_tensor_inputs:
+                        callback_kwargs[k] = locals()[k]
+                    callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
+
+                    latents = callback_outputs.pop("latents", latents)
+                    prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
+                    negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
+                    add_text_embeds = callback_outputs.pop("add_text_embeds", add_text_embeds)
+                    # negative_pooled_prompt_embeds = callback_outputs.pop(
+                    #     "negative_pooled_prompt_embeds", negative_pooled_prompt_embeds
+                    # )
+                    # add_time_ids = callback_outputs.pop("add_time_ids", add_time_ids)
+                    # negative_add_time_ids = callback_outputs.pop("negative_add_time_ids", negative_add_time_ids)                
 
                 # call the callback, if provided
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
