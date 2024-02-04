@@ -12,7 +12,9 @@ import spaces
 import gradio as gr
 
 from photomaker import PhotoMakerStableDiffusionXLPipeline
+
 from style_template import styles
+from aspect_ratio_template import aspect_ratios
 
 # global variable
 base_model_path = 'SG161222/RealVisXL_V3.0'
@@ -29,6 +31,8 @@ except:
 MAX_SEED = np.iinfo(np.int32).max
 STYLE_NAMES = list(styles.keys())
 DEFAULT_STYLE_NAME = "Photographic (Default)"
+ASPECT_RATIO_LABELS = list(aspect_ratios)
+DEFAULT_ASPECT_RATIO = ASPECT_RATIO_LABELS[0]
 
 # download PhotoMaker checkpoint to cache
 photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v1.bin", repo_type="model")
@@ -37,6 +41,7 @@ if device == "mps":
     torch_dtype = torch.float16
 else:
     torch_dtype = torch.bfloat16
+
 pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
     base_model_path, 
     torch_dtype=torch_dtype,
@@ -58,7 +63,7 @@ pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
 pipe.fuse_lora()
 
 @spaces.GPU(enable_queue=True)
-def generate_image(upload_images, prompt, negative_prompt, style_name, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed, progress=gr.Progress(track_tqdm=True)):
+def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, style_name, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed, progress=gr.Progress(track_tqdm=True)):
     # check the trigger word
     image_token_id = pipe.tokenizer.convert_tokens_to_ids(pipe.trigger_word)
     input_ids = pipe.tokenizer.encode(prompt)
@@ -67,6 +72,10 @@ def generate_image(upload_images, prompt, negative_prompt, style_name, num_steps
 
     if input_ids.count(image_token_id) > 1:
         raise gr.Error(f"Cannot use multiple trigger words '{pipe.trigger_word}' in text prompt!")
+
+    # determine output dimensions by the aspect ratio
+    output_w, output_h = aspect_ratios[aspect_ratio_name]
+    print(f"[Debug] Generate image using aspect ratio [{aspect_ratio_name}] => {output_w} x {output_h}")
 
     # apply the style template
     prompt, negative_prompt = apply_style(style_name, prompt, negative_prompt)
@@ -88,6 +97,8 @@ def generate_image(upload_images, prompt, negative_prompt, style_name, num_steps
     print(start_merge_step)
     images = pipe(
         prompt=prompt,
+        width=output_w,
+        height=output_h,
         input_id_images=input_id_images,
         negative_prompt=negative_prompt,
         num_images_per_prompt=num_outputs,
@@ -222,6 +233,7 @@ with gr.Blocks(css=css) as demo:
                        info="Try something like 'a photo of a man/woman img', 'img' is the trigger word.",
                        placeholder="A photo of a [man/woman img]...")
             style = gr.Dropdown(label="Style template", choices=STYLE_NAMES, value=DEFAULT_STYLE_NAME)
+            aspect_ratio = gr.Dropdown(label="Output aspect ratio", choices=ASPECT_RATIO_LABELS, value=DEFAULT_ASPECT_RATIO)
             submit = gr.Button("Submit")
 
             with gr.Accordion(open=False, label="Advanced Options"):
@@ -284,7 +296,7 @@ with gr.Blocks(css=css) as demo:
             api_name=False,
         ).then(
             fn=generate_image,
-            inputs=[files, prompt, negative_prompt, style, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed],
+            inputs=[files, prompt, negative_prompt, aspect_ratio, style, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed],
             outputs=[gallery, usage_tips]
         )
 
