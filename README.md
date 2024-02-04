@@ -75,6 +75,16 @@ Note: only change the base model and add the LoRA modules for better stylization
   <img src="https://cdn-uploads.huggingface.co/production/uploads/6285a9133ab6642179158944/-AC7Hr5YL4yW1zXGe_Izl.jpeg" height=450>
 </p>
 
+### Note about the output aspect ratio
+
+The underlying generative model has billions of parameters. And, whether You believe it or not, **all** of them do affect the output. The width/height (i.e. the "Aspect Ratio") of the output are just a few of these parameters.
+
+For example, using the exact same positive/negative prompts and seed value, only changing the aspect ratio (i.e. the width/height) of the output image, it is possible to generate e.g. following results:
+
+<p align="center">
+  <img src="https://cdn.cleverest.eu/attachment/github.com/TencentARC/PhotoMaker/pull/120/aspect-ratio-matters.png" height=725>
+</p>
+
 # 🔧 Dependencies and Installation
 
 - Python >= 3.8 (Recommend to use [Anaconda](https://www.anaconda.com/download/#linux) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html))
