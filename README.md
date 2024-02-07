@@ -205,6 +205,10 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 1. [Demo link](https://replicate.com/jd7h/photomaker), run PhotoMaker on replicate, provided by [@yorickvP](https://github.com/yorickvP).
 2. [Demo link (style version)](https://replicate.com/yorickvp/photomaker-style).
 
+### WebUI version of PhotoMaker: 
+1. **stable-diffusion-webui-forge**: https://github.com/lllyasviel/stable-diffusion-webui-forge provided by [@Lvmin Zhang](https://github.com/lllyasviel)
+2. **Fooocus App**: [Fooocus-inswapper](https://github.com/machineminded/Fooocus-inswapper) provided by [@machineminded](https://github.com/machineminded)
+
 ### Windows version of PhotoMaker: 
 1. [bmaltais/PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
 2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/bmaltais).
@@ -220,10 +224,9 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 2. **OpenXLab (Easy to use in China)**: https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker
  [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/camenduru/PhotoMaker)
 by [@camenduru](https://github.com/camenduru).
-3. **Fooocus App**: [Fooocus-inswapper](https://github.com/machineminded/Fooocus-inswapper) provided by [@machineminded](https://github.com/machineminded)
-4. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
-5. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
-6. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
+3. **Colab**: https://github.com/camenduru/PhotoMaker-colab by [@camenduru](https://github.com/camenduru)
+4. **Monster API**: https://monsterapi.ai/playground?model=photo-maker
+5. **Pinokio**: https://pinokio.computer/item?uri=https://github.com/cocktailpeanutlabs/photomaker
 
 ### Graido demo in 45 lines
 Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
