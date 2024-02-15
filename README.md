@@ -202,7 +202,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 
 # Related Resources
 ### Replicate demo of PhotoMaker: 
-1. [Demo link](https://replicate.com/jd7h/photomaker), run PhotoMaker on replicate, provided by [@yorickvP](https://github.com/yorickvP).
+1. [Demo link](https://replicate.com/jd7h/photomaker), run PhotoMaker on replicate, provided by [@yorickvP](https://github.com/yorickvP) and [@jd7h](https://github.com/jd7h).
 2. [Demo link (style version)](https://replicate.com/yorickvp/photomaker-style).
 
 ### WebUI version of PhotoMaker: 
