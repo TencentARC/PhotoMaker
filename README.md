@@ -211,7 +211,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 
 ### Windows version of PhotoMaker: 
 1. [bmaltais/PhotoMaker](https://github.com/bmaltais/PhotoMaker/tree/v1.0.1) by [@bmaltais](https://github.com/bmaltais), easy to deploy PhotoMaker on Windows. The description can be found in [this link](https://github.com/TencentARC/PhotoMaker/discussions/36#discussioncomment-8156199).
-2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/bmaltais).
+2. [sdbds/PhotoMaker-for-windows](https://github.com/sdbds/PhotoMaker-for-windows/tree/windows) by [@sdbds](https://github.com/sdbds).
    
 ### ComfyUI:
 1. 🔥 **Official Implementation by [ComfyUI](https://github.com/comfyanonymous/ComfyUI)**: https://github.com/comfyanonymous/ComfyUI/commit/d1533d9c0f1dde192f738ef1b745b15f49f41e02
