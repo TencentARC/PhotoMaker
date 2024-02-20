@@ -220,7 +220,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 4. https://github.com/shiimizu/ComfyUI-PhotoMaker
 
 ### Purely C/C++/CUDA version of PhotoMaker:
-1. [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp/pull/179) by [@bssrdf](https://github.com/bmaltais).
+1. [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp/pull/179) by [@bssrdf](https://github.com/bssrdf).
 
 ### Other Applications / Web Demos
 1. **Wisemodel 始智 (Easy to use in China)** https://wisemodel.cn/space/gradio/photomaker 
