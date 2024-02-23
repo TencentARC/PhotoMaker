@@ -4,6 +4,7 @@
 </p>
 
 <!-- ## <div align="center"><b>PhotoMaker</b></div> -->
+
 <div align="center">
   
 ## PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding  [![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-md-dark.svg)](https://huggingface.co/papers/2312.04461)
@@ -18,8 +19,9 @@ If the ID fidelity is not enough for you, please try our [stylization applicatio
 
 
 ---
-
 Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding](https://huggingface.co/papers/2312.04461)**.
+
+<a href="https://trendshift.io/repositories/7008" target="_blank" align=center><img src="https://trendshift.io/api/badge/repositories/7008" alt="TencentARC%2FPhotoMaker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 ### 🌠  **Key Features:**
 
