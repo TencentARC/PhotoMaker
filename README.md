@@ -21,7 +21,6 @@ If the ID fidelity is not enough for you, please try our [stylization applicatio
 ---
 Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding](https://huggingface.co/papers/2312.04461)**.
 
-<a href="https://trendshift.io/repositories/7008" target="_blank" align=center><img src="https://trendshift.io/api/badge/repositories/7008" alt="TencentARC%2FPhotoMaker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 ### 🌠  **Key Features:**
 
@@ -30,6 +29,7 @@ Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via
 3. Can serve as an **Adapter** to collaborate with other Base Models alongside LoRA modules in community.
 
 ---
+<a href="https://trendshift.io/repositories/7008" target="_blank" align=center><img src="https://trendshift.io/api/badge/repositories/7008" alt="TencentARC%2FPhotoMaker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 ❗❗ Note: If there are any PhotoMaker based resources and applications, please leave them in the [discussion](https://github.com/TencentARC/PhotoMaker/discussions/36) and we will list them in the [Related Resources](https://github.com/TencentARC/PhotoMaker?tab=readme-ov-file#related-resources) section in README file.
 Now we know the implementation of **Replicate**, **Windows**, **ComfyUI**, and **WebUI**. Thank you all! 
