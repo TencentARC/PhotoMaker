@@ -250,9 +250,9 @@ This project strives to impact the domain of AI-driven image generation positive
 If you find PhotoMaker useful for your research and applications, please cite using this BibTeX:
 
 ```BibTeX
-@article{li2023photomaker,
+@inproceedings{li2023photomaker,
   title={PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding},
   author={Li, Zhen and Cao, Mingdeng and Wang, Xintao and Qi, Zhongang and Cheng, Ming-Ming and Shan, Ying},
-  booktitle={arXiv preprint arxiv:2312.04461},
-  year={2023}
+  booktitle={IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2024}
 }
