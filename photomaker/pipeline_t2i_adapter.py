@@ -1,10 +1,10 @@
 #####
-# Modified from https://github.com/huggingface/diffusers/blob/v0.29.1/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
+# Modified from https://github.com/huggingface/diffusers/blob/v0.29.1/src/diffusers/pipelines/t2i_adapter/pipeline_stable_diffusion_xl_adapter.py
 # PhotoMaker v2 @ TencentARC and MCG-NKU 
 # Author: Zhen Li
 #####
 
-# Copyright 2024 The HuggingFace Team. All rights reserved.
+# Copyright 2024 TencentARC and The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,52 +20,54 @@
 
 import inspect
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-import PIL
 
+import numpy as np
+import PIL.Image
 import torch
-from transformers import CLIPImageProcessor
+from transformers import (
+    CLIPImageProcessor,
+    CLIPTextModel,
+    CLIPTextModelWithProjection,
+    CLIPTokenizer,
+    CLIPVisionModelWithProjection,
+)
 
-from safetensors import safe_open
-from huggingface_hub.utils import validate_hf_hub_args
-from diffusers import StableDiffusionXLPipeline
-from diffusers.pipelines.stable_diffusion_xl import StableDiffusionXLPipelineOutput
+from diffusers.image_processor import PipelineImageInput, VaeImageProcessor
 from diffusers.loaders import (
+    FromSingleFileMixin,
+    IPAdapterMixin,
     StableDiffusionXLLoraLoaderMixin,
     TextualInversionLoaderMixin,
 )
-from diffusers.callbacks import (
-    MultiPipelineCallbacks,
-    PipelineCallback,
+from diffusers.models import AutoencoderKL, ImageProjection, MultiAdapter, T2IAdapter, UNet2DConditionModel
+from diffusers.models.attention_processor import (
+    AttnProcessor2_0,
+    LoRAAttnProcessor2_0,
+    LoRAXFormersAttnProcessor,
+    XFormersAttnProcessor,
 )
 from diffusers.models.lora import adjust_lora_scale_text_encoder
+from diffusers.schedulers import KarrasDiffusionSchedulers
 from diffusers.utils import (
-    _get_model_file,
+    PIL_INTERPOLATION,
     USE_PEFT_BACKEND,
-    deprecate,
-    is_torch_xla_available,
+    logging,
+    replace_example_docstring,
     scale_lora_layers,
     unscale_lora_layers,
 )
-
-if is_torch_xla_available():
-    import torch_xla.core.xla_model as xm
-
-    XLA_AVAILABLE = True
-else:
-    XLA_AVAILABLE = False
-
+from diffusers.utils.torch_utils import randn_tensor
+from diffusers.pipelines.pipeline_utils import DiffusionPipeline, StableDiffusionMixin
+from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
+from diffusers.pipelines import StableDiffusionXLAdapterPipeline
+from diffusers.utils import _get_model_file
+from safetensors import safe_open
+from huggingface_hub.utils import validate_hf_hub_args
 
 from . import (
     PhotoMakerIDEncoder, # PhotoMaker v1
     PhotoMakerIDEncoder_CLIPInsightfaceExtendtoken, # PhotoMaker v2
 )
-
-PipelineImageInput = Union[
-    PIL.Image.Image,
-    torch.FloatTensor,
-    List[PIL.Image.Image],
-    List[torch.FloatTensor],
-]
 
 
 # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.rescale_noise_cfg
@@ -141,9 +143,36 @@ def retrieve_timesteps(
         scheduler.set_timesteps(num_inference_steps, device=device, **kwargs)
         timesteps = scheduler.timesteps
     return timesteps, num_inference_steps
-    
 
-class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
+
+def _preprocess_adapter_image(image, height, width):
+    if isinstance(image, torch.Tensor):
+        return image
+    elif isinstance(image, PIL.Image.Image):
+        image = [image]
+
+    if isinstance(image[0], PIL.Image.Image):
+        image = [np.array(i.resize((width, height), resample=PIL_INTERPOLATION["lanczos"])) for i in image]
+        image = [
+            i[None, ..., None] if i.ndim == 2 else i[None, ...] for i in image
+        ]  # expand [h, w] or [h, w, c] to [b, h, w, c]
+        image = np.concatenate(image, axis=0)
+        image = np.array(image).astype(np.float32) / 255.0
+        image = image.transpose(0, 3, 1, 2)
+        image = torch.from_numpy(image)
+    elif isinstance(image[0], torch.Tensor):
+        if image[0].ndim == 3:
+            image = torch.stack(image, dim=0)
+        elif image[0].ndim == 4:
+            image = torch.cat(image, dim=0)
+        else:
+            raise ValueError(
+                f"Invalid image tensor! Expecting image tensor with 3 or 4 dimension, but recive: {image[0].ndim}"
+            )
+    return image
+
+
+class PhotoMakerStableDiffusionXLAdapterPipeline(StableDiffusionXLAdapterPipeline):
     @validate_hf_hub_args
     def load_photomaker_adapter(
         self,
@@ -224,7 +253,6 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             raise ValueError("Required keys are (`id_encoder` and `lora_weights`) missing from the state dict.")
 
         self.num_tokens =2
-        self.pm_version = pm_version
         self.trigger_word = trigger_word
         # load finetuned CLIP image encoder and fuse module here if it has not been registered to the pipeline yet
         print(f"Loading PhotoMaker {pm_version} components [1] id_encoder from [{pretrained_model_name_or_path_or_dict}]...")
@@ -384,7 +412,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                 else:
                     # "2" because SDXL always indexes from the penultimate layer.
                     prompt_embeds = prompt_embeds.hidden_states[-(clip_skip + 2)]
-                
+
                 prompt_embeds_list.append(prompt_embeds)
 
             prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
@@ -465,7 +493,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
             negative_prompt_embeds = negative_prompt_embeds.repeat(1, num_images_per_prompt, 1)
             negative_prompt_embeds = negative_prompt_embeds.view(batch_size * num_images_per_prompt, seq_len, -1)
-            
+
         pooled_prompt_embeds = pooled_prompt_embeds.repeat(1, num_images_per_prompt).view(
             bs_embed * num_images_per_prompt, -1
         )
@@ -486,11 +514,16 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
         return prompt_embeds, negative_prompt_embeds, pooled_prompt_embeds, negative_pooled_prompt_embeds, class_tokens_mask
 
+    @property
+    def interrupt(self):
+        return self._interrupt
+
     @torch.no_grad()
     def __call__(
         self,
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
+        image: PipelineImageInput = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         num_inference_steps: int = 50,
@@ -512,6 +545,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         ip_adapter_image_embeds: Optional[List[torch.Tensor]] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
+        callback: Optional[Callable[[int, int, torch.Tensor], None]] = None,
+        callback_steps: int = 1,
         cross_attention_kwargs: Optional[Dict[str, Any]] = None,
         guidance_rescale: float = 0.0,
         original_size: Optional[Tuple[int, int]] = None,
@@ -520,11 +555,9 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         negative_original_size: Optional[Tuple[int, int]] = None,
         negative_crops_coords_top_left: Tuple[int, int] = (0, 0),
         negative_target_size: Optional[Tuple[int, int]] = None,
+        adapter_conditioning_scale: Union[float, List[float]] = 1.0,
+        adapter_conditioning_factor: float = 1.0,
         clip_skip: Optional[int] = None,
-        callback_on_step_end: Optional[
-            Union[Callable[[int, int, Dict], None], PipelineCallback, MultiPipelineCallbacks]
-        ] = None,
-        callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         # Added parameters (for PhotoMaker)
         input_id_images: PipelineImageInput = None,
         start_merge_step: int = 10, # TODO: change to `style_strength_ratio` in the future
@@ -537,7 +570,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         r"""
         Function invoked when calling the pipeline for generation.
         Only the parameters introduced by PhotoMaker are discussed here. 
-        For explanations of the previous parameters in StableDiffusionXLPipeline, please refer to https://github.com/huggingface/diffusers/blob/v0.25.0/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py
+        For explanations of the previous parameters in StableDiffusionXLControlNetPipeline, please refer to https://github.com/huggingface/diffusers/blob/v0.25.0/src/diffusers/pipelines/controlnet/pipeline_controlnet_sd_xl.py
 
         Args:
             input_id_images (`PipelineImageInput`, *optional*): 
@@ -556,29 +589,22 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             [`~pipelines.stable_diffusion_xl.StableDiffusionXLPipelineOutput`] if `return_dict` is True, otherwise a
             `tuple`. When returning a tuple, the first element is a list with the generated images.
         """
+        height, width = self._default_height_width(height, width, image)
+        device = self._execution_device
+        
+        use_adapter = True if image is not None else False
+        print(f"Use adapter: {use_adapter} ｜ output size: {(height, width)}")
+        if use_adapter:
+            if isinstance(self.adapter, MultiAdapter):
+                adapter_input = []
 
-        callback = kwargs.pop("callback", None)
-        callback_steps = kwargs.pop("callback_steps", None)
-
-        if callback is not None:
-            deprecate(
-                "callback",
-                "1.0.0",
-                "Passing `callback` as an input argument to `__call__` is deprecated, consider use `callback_on_step_end`",
-            )
-        if callback_steps is not None:
-            deprecate(
-                "callback_steps",
-                "1.0.0",
-                "Passing `callback_steps` as an input argument to `__call__` is deprecated, consider use `callback_on_step_end`",
-            )
-
-        if isinstance(callback_on_step_end, (PipelineCallback, MultiPipelineCallbacks)):
-            callback_on_step_end_tensor_inputs = callback_on_step_end.tensor_inputs
-
-        # 0. Default height and width to unet
-        height = height or self.default_sample_size * self.vae_scale_factor
-        width = width or self.default_sample_size * self.vae_scale_factor
+                for one_image in image:
+                    one_image = _preprocess_adapter_image(one_image, height, width)
+                    one_image = one_image.to(device=device, dtype=self.adapter.dtype)
+                    adapter_input.append(one_image)
+            else:
+                adapter_input = _preprocess_adapter_image(image, height, width)
+                adapter_input = adapter_input.to(device=device, dtype=self.adapter.dtype)
 
         original_size = original_size or (height, width)
         target_size = target_size or (height, width)
@@ -598,15 +624,9 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             negative_pooled_prompt_embeds,
             ip_adapter_image,
             ip_adapter_image_embeds,
-            callback_on_step_end_tensor_inputs,
         )
-
         self._guidance_scale = guidance_scale
-        self._guidance_rescale = guidance_rescale
         self._clip_skip = clip_skip
-        self._cross_attention_kwargs = cross_attention_kwargs
-        self._denoising_end = denoising_end
-        self._interrupt = False
 
         #        
         if prompt_embeds is not None and class_tokens_mask is None:
@@ -633,10 +653,11 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
 
         # 3. Encode input prompt
         lora_scale = (
-            self.cross_attention_kwargs.get("scale", None) if self.cross_attention_kwargs is not None else None
+            cross_attention_kwargs.get("scale", None) if cross_attention_kwargs is not None else None
         )
         
         num_id_images = len(input_id_images)
+        
         (
             prompt_embeds, 
             _,
@@ -658,7 +679,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             pooled_prompt_embeds=pooled_prompt_embeds,
             negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
             lora_scale=lora_scale,
-            clip_skip=self.clip_skip,
+            clip_skip=self._clip_skip,
         )
 
         # 4. Encode input prompt without the trigger word for delayed conditioning
@@ -685,32 +706,42 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             pooled_prompt_embeds=pooled_prompt_embeds_text_only,
             negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
             lora_scale=lora_scale,
-            clip_skip=self.clip_skip,
+            clip_skip=self._clip_skip,
         )
 
-        # 5. Prepare timesteps
-        timesteps, num_inference_steps = retrieve_timesteps(
-            self.scheduler, num_inference_steps, device, timesteps, sigmas
-        )
-
-        # 6. Prepare the input ID images
+        # 5. Prepare the input ID images
         dtype = next(self.id_encoder.parameters()).dtype
         if not isinstance(input_id_images[0], torch.Tensor):
             id_pixel_values = self.id_image_processor(input_id_images, return_tensors="pt").pixel_values
 
         id_pixel_values = id_pixel_values.unsqueeze(0).to(device=device, dtype=dtype) # TODO: multiple prompts
 
-        # 7. Get the update text embedding with the stacked ID embedding
+        # 6. Get the update text embedding with the stacked ID embedding
         if id_embeds is not None:
             id_embeds = id_embeds.unsqueeze(0).to(device=device, dtype=dtype)
             prompt_embeds = self.id_encoder(id_pixel_values, prompt_embeds, class_tokens_mask, id_embeds)
         else:
             prompt_embeds = self.id_encoder(id_pixel_values, prompt_embeds, class_tokens_mask)
-        
+
         bs_embed, seq_len, _ = prompt_embeds.shape
         # duplicate text embeddings for each generation per prompt, using mps friendly method
         prompt_embeds = prompt_embeds.repeat(1, num_images_per_prompt, 1)
         prompt_embeds = prompt_embeds.view(bs_embed * num_images_per_prompt, seq_len, -1)
+
+        # 6.1 Get the ip adapter embedding
+        if ip_adapter_image is not None or ip_adapter_image_embeds is not None:
+            image_embeds = self.prepare_ip_adapter_image_embeds(
+                ip_adapter_image,
+                ip_adapter_image_embeds,
+                device,
+                batch_size * num_images_per_prompt,
+                self.do_classifier_free_guidance,
+            )
+
+        # 7. Prepare timesteps
+        timesteps, num_inference_steps = retrieve_timesteps(
+            self.scheduler, num_inference_steps, device, timesteps, sigmas
+        )
 
         # 8. Prepare latent variables
         num_channels_latents = self.unet.config.in_channels
@@ -724,11 +755,34 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             generator,
             latents,
         )
-
         # 9. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
 
-        # 10. Prepare added time ids & embeddings
+        # 8.5 Optionally get Guidance Scale Embedding
+        timestep_cond = None
+        if self.unet.config.time_cond_proj_dim is not None:
+            guidance_scale_tensor = torch.tensor(self.guidance_scale - 1).repeat(batch_size * num_images_per_prompt)
+            timestep_cond = self.get_guidance_scale_embedding(
+                guidance_scale_tensor, embedding_dim=self.unet.config.time_cond_proj_dim
+            ).to(device=device, dtype=latents.dtype)
+
+        # 9. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
+        if use_adapter:
+            if isinstance(self.adapter, MultiAdapter):
+                adapter_state = self.adapter(adapter_input, adapter_conditioning_scale)
+                for k, v in enumerate(adapter_state):
+                    adapter_state[k] = v
+            else:
+                adapter_state = self.adapter(adapter_input)
+                for k, v in enumerate(adapter_state):
+                    adapter_state[k] = v * adapter_conditioning_scale
+            if num_images_per_prompt > 1:
+                for k, v in enumerate(adapter_state):
+                    adapter_state[k] = v.repeat(num_images_per_prompt, 1, 1, 1)
+            if self.do_classifier_free_guidance:
+                for k, v in enumerate(adapter_state):
+                    adapter_state[k] = torch.cat([v] * 2, dim=0)
+
         add_text_embeds = pooled_prompt_embeds
         if self.text_encoder_2 is None:
             text_encoder_projection_dim = int(pooled_prompt_embeds.shape[-1])
@@ -752,7 +806,7 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             )
         else:
             negative_add_time_ids = add_time_ids
-            
+
         if self.do_classifier_free_guidance:
             add_time_ids = torch.cat([negative_add_time_ids, add_time_ids], dim=0)
 
@@ -760,47 +814,21 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         add_text_embeds = add_text_embeds.to(device)
         add_time_ids = add_time_ids.to(device).repeat(batch_size * num_images_per_prompt, 1)
 
-        if ip_adapter_image is not None or ip_adapter_image_embeds is not None:
-            image_embeds = self.prepare_ip_adapter_image_embeds(
-                ip_adapter_image,
-                ip_adapter_image_embeds,
-                device,
-                batch_size * num_images_per_prompt,
-                self.do_classifier_free_guidance,
-            )
-
         # 11. Denoising loop
         num_warmup_steps = max(len(timesteps) - num_inference_steps * self.scheduler.order, 0)
-
-        # 11.1 Apply denoising_end
-        if (
-            self.denoising_end is not None
-            and isinstance(self.denoising_end, float)
-            and self.denoising_end > 0
-            and self.denoising_end < 1
-        ):
+        # Apply denoising_end
+        if denoising_end is not None and isinstance(denoising_end, float) and denoising_end > 0 and denoising_end < 1:
             discrete_timestep_cutoff = int(
                 round(
                     self.scheduler.config.num_train_timesteps
-                    - (self.denoising_end * self.scheduler.config.num_train_timesteps)
+                    - (denoising_end * self.scheduler.config.num_train_timesteps)
                 )
             )
             num_inference_steps = len(list(filter(lambda ts: ts >= discrete_timestep_cutoff, timesteps)))
             timesteps = timesteps[:num_inference_steps]
 
-        # 12. Optionally get Guidance Scale Embedding
-        timestep_cond = None
-        if self.unet.config.time_cond_proj_dim is not None:
-            guidance_scale_tensor = torch.tensor(self.guidance_scale - 1).repeat(batch_size * num_images_per_prompt)
-            timestep_cond = self.get_guidance_scale_embedding(
-                guidance_scale_tensor, embedding_dim=self.unet.config.time_cond_proj_dim
-            ).to(device=device, dtype=latents.dtype)
-
-        self._num_timesteps = len(timesteps)
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
-                if self.interrupt:
-                    continue
 
                 # expand the latents if we are doing classifier free guidance
                 latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
@@ -821,7 +849,12 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                     add_text_embeds = torch.cat(
                         [negative_pooled_prompt_embeds, pooled_prompt_embeds], dim=0
                         ) if self.do_classifier_free_guidance else pooled_prompt_embeds
-                    
+
+                if i < int(num_inference_steps * adapter_conditioning_factor) and (use_adapter):
+                    down_intrablock_additional_residuals = [state.clone() for state in adapter_state]
+                else:
+                    down_intrablock_additional_residuals = None
+
                 added_cond_kwargs = {"text_embeds": add_text_embeds, "time_ids": add_time_ids}
                 if ip_adapter_image is not None or ip_adapter_image_embeds is not None:
                     added_cond_kwargs["image_embeds"] = image_embeds
@@ -832,7 +865,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                     t,
                     encoder_hidden_states=current_prompt_embeds,
                     timestep_cond=timestep_cond,
-                    cross_attention_kwargs=self.cross_attention_kwargs,
+                    cross_attention_kwargs=cross_attention_kwargs,
+                    down_intrablock_additional_residuals=down_intrablock_additional_residuals,
                     added_cond_kwargs=added_cond_kwargs,
                     return_dict=False,
                 )[0]
@@ -840,35 +874,14 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                 # perform guidance
                 if self.do_classifier_free_guidance:
                     noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-                    noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_text - noise_pred_uncond)
+                    noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
 
-                if self.do_classifier_free_guidance and self.guidance_rescale > 0.0:
+                if self.do_classifier_free_guidance and guidance_rescale > 0.0:
                     # Based on 3.4. in https://arxiv.org/pdf/2305.08891.pdf
-                    noise_pred = rescale_noise_cfg(noise_pred, noise_pred_text, guidance_rescale=self.guidance_rescale)
+                    noise_pred = rescale_noise_cfg(noise_pred, noise_pred_text, guidance_rescale=guidance_rescale)
 
                 # compute the previous noisy sample x_t -> x_t-1
-                latents_dtype = latents.dtype
                 latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
-                if latents.dtype != latents_dtype:
-                    if torch.backends.mps.is_available():
-                        # some platforms (eg. apple mps) misbehave due to a pytorch bug: https://github.com/pytorch/pytorch/pull/99272
-                        latents = latents.to(latents_dtype)
-
-                if callback_on_step_end is not None:
-                    callback_kwargs = {}
-                    for k in callback_on_step_end_tensor_inputs:
-                        callback_kwargs[k] = locals()[k]
-                    callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
-
-                    latents = callback_outputs.pop("latents", latents)
-                    prompt_embeds = callback_outputs.pop("prompt_embeds", prompt_embeds)
-                    negative_prompt_embeds = callback_outputs.pop("negative_prompt_embeds", negative_prompt_embeds)
-                    add_text_embeds = callback_outputs.pop("add_text_embeds", add_text_embeds)
-                    negative_pooled_prompt_embeds = callback_outputs.pop(
-                        "negative_pooled_prompt_embeds", negative_pooled_prompt_embeds
-                    )
-                    add_time_ids = callback_outputs.pop("add_time_ids", add_time_ids)
-                    negative_add_time_ids = callback_outputs.pop("negative_add_time_ids", negative_add_time_ids)             
 
                 # call the callback, if provided
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
@@ -877,9 +890,6 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
                         step_idx = i // getattr(self.scheduler, "order", 1)
                         callback(step_idx, t, latents)
 
-                if XLA_AVAILABLE:
-                    xm.mark_step()
-
         if not output_type == "latent":
             # make sure the VAE is in float32 mode, as it overflows in float16
             needs_upcasting = self.vae.dtype == torch.float16 and self.vae.config.force_upcast
@@ -887,27 +897,8 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             if needs_upcasting:
                 self.upcast_vae()
                 latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
-            elif latents.dtype != self.vae.dtype:
-                if torch.backends.mps.is_available():
-                    # some platforms (eg. apple mps) misbehave due to a pytorch bug: https://github.com/pytorch/pytorch/pull/99272
-                    self.vae = self.vae.to(latents.dtype)
 
-            # unscale/denormalize the latents
-            # denormalize with the mean and std if available and not None
-            has_latents_mean = hasattr(self.vae.config, "latents_mean") and self.vae.config.latents_mean is not None
-            has_latents_std = hasattr(self.vae.config, "latents_std") and self.vae.config.latents_std is not None
-            if has_latents_mean and has_latents_std:
-                latents_mean = (
-                    torch.tensor(self.vae.config.latents_mean).view(1, 4, 1, 1).to(latents.device, latents.dtype)
-                )
-                latents_std = (
-                    torch.tensor(self.vae.config.latents_std).view(1, 4, 1, 1).to(latents.device, latents.dtype)
-                )
-                latents = latents * latents_std / self.vae.config.scaling_factor + latents_mean
-            else:
-                latents = latents / self.vae.config.scaling_factor
-
-            image = self.vae.decode(latents, return_dict=False)[0]
+            image = self.vae.decode(latents / self.vae.config.scaling_factor, return_dict=False)[0]
 
             # cast back to fp16 if needed
             if needs_upcasting:
@@ -915,10 +906,6 @@ class PhotoMakerStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         else:
             image = latents
             return StableDiffusionXLPipelineOutput(images=image)
-
-        # apply watermark if available
-        # if self.watermark is not None:
-        #     image = self.watermark.apply_watermark(image)
 
         image = self.image_processor.postprocess(image, output_type=output_type)
 

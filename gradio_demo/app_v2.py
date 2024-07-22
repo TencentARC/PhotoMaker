@@ -1,23 +1,28 @@
 import torch
+import torchvision.transforms.functional as TF
 import numpy as np
 import random
 import os
 import sys
 
 from diffusers.utils import load_image
-from diffusers import EulerDiscreteScheduler
+from diffusers import EulerDiscreteScheduler, T2IAdapter
 
 from huggingface_hub import hf_hub_download
 import spaces
 import gradio as gr
 
-from photomaker import PhotoMakerStableDiffusionXLPipeline
+from photomaker import PhotoMakerStableDiffusionXLAdapterPipeline
+from photomaker import FaceAnalysis2, analyze_faces
 
 from style_template import styles
 from aspect_ratio_template import aspect_ratios
 
 # global variable
 base_model_path = 'SG161222/RealVisXL_V4.0'
+face_detector = FaceAnalysis2(providers=['CUDAExecutionProvider'], allowed_modules=['detection', 'recognition'])
+face_detector.prepare(ctx_id=0, det_size=(640, 640))
+
 try:
     if torch.cuda.is_available():
         device = "cuda"
@@ -34,19 +39,24 @@ DEFAULT_STYLE_NAME = "Photographic (Default)"
 ASPECT_RATIO_LABELS = list(aspect_ratios)
 DEFAULT_ASPECT_RATIO = ASPECT_RATIO_LABELS[0]
 
-# download PhotoMaker checkpoint to cache
-photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v1.bin", repo_type="model")
+enable_doodle_arg = False
+photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v2.bin", repo_type="model")
 
 torch_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 if device == "mps":
     torch_dtype = torch.float16
+    
+# load adapter
+adapter = T2IAdapter.from_pretrained(
+    "TencentARC/t2i-adapter-sketch-sdxl-1.0", torch_dtype=torch_dtype, variant="fp16"
+).to(device)
 
-pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
+pipe = PhotoMakerStableDiffusionXLAdapterPipeline.from_pretrained(
     base_model_path, 
+    adapter=adapter, 
     torch_dtype=torch_dtype,
     use_safetensors=True, 
     variant="fp16",
-    # local_files_only=True,
 ).to(device)
 
 pipe.load_photomaker_adapter(
@@ -54,7 +64,7 @@ pipe.load_photomaker_adapter(
     subfolder="",
     weight_name=os.path.basename(photomaker_ckpt),
     trigger_word="img",
-    pm_version="v1",
+    pm_version="v2",
 )
 pipe.id_encoder.to(device)
 
@@ -63,8 +73,38 @@ pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
 pipe.fuse_lora()
 pipe.to(device)
 
+
 @spaces.GPU
-def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, style_name, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed, progress=gr.Progress(track_tqdm=True)):
+def generate_image(
+    upload_images, 
+    prompt, 
+    negative_prompt, 
+    aspect_ratio_name, 
+    style_name, 
+    num_steps, 
+    style_strength_ratio, 
+    num_outputs, 
+    guidance_scale, 
+    seed, 
+    use_doodle,
+    sketch_image,
+    adapter_conditioning_scale,
+    adapter_conditioning_factor,
+    progress=gr.Progress(track_tqdm=True)
+):
+    if use_doodle:
+        sketch_image = sketch_image["composite"]
+        r, g, b, a = sketch_image.split()
+        sketch_image = a.convert("RGB")
+        sketch_image = TF.to_tensor(sketch_image) > 0.5 # Inversion 
+        sketch_image = TF.to_pil_image(sketch_image.to(torch.float32))
+        adapter_conditioning_scale = adapter_conditioning_scale
+        adapter_conditioning_factor = adapter_conditioning_factor
+    else:
+        adapter_conditioning_scale = 0.
+        adapter_conditioning_factor = 0.
+        sketch_image = None
+
     # check the trigger word
     image_token_id = pipe.tokenizer.convert_tokens_to_ids(pipe.trigger_word)
     input_ids = pipe.tokenizer.encode(prompt)
@@ -88,9 +128,24 @@ def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, st
     for img in upload_images:
         input_id_images.append(load_image(img))
     
+    id_embed_list = []
+
+    for img in input_id_images:
+        img = np.array(img)
+        img = img[:, :, ::-1]
+        faces = analyze_faces(face_detector, img)
+        if len(faces) > 0:
+            id_embed_list.append(torch.from_numpy((faces[0]['embedding'])))
+
+    if len(id_embed_list) == 0:
+        raise gr.Error(f"No face detected, please update the input face image(s)")
+    
+    id_embeds = torch.stack(id_embed_list)
+
     generator = torch.Generator(device=device).manual_seed(seed)
 
     print("Start inference...")
+    print(f"[Debug] Seed: {seed}")
     print(f"[Debug] Prompt: {prompt}, \n[Debug] Neg Prompt: {negative_prompt}")
     start_merge_step = int(float(style_strength_ratio) / 100 * num_steps)
     if start_merge_step > 30:
@@ -107,6 +162,10 @@ def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, st
         start_merge_step=start_merge_step,
         generator=generator,
         guidance_scale=guidance_scale,
+        id_embeds=id_embeds,
+        image=sketch_image,
+        adapter_conditioning_scale=adapter_conditioning_scale,
+        adapter_conditioning_factor=adapter_conditioning_factor,
     ).images
     return images, gr.update(visible=True)
 
@@ -119,6 +178,12 @@ def upload_example_to_gallery(images, prompt, style, negative_prompt):
 def remove_back_to_files():
     return gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)
     
+def change_doodle_space(use_doodle):
+    if use_doodle:
+        return gr.update(visible=True)
+    else:
+        return gr.update(visible=False)
+
 def remove_tips():
     return gr.update(visible=False)
 
@@ -127,7 +192,7 @@ def randomize_seed_fn(seed: int, randomize_seed: bool) -> int:
         seed = random.randint(0, MAX_SEED)
     return seed
 
-def apply_style(style_name: str, positive: str, negative: str = ""):
+def apply_style(style_name: str, positive: str, negative: str = "") -> tuple[str, str]:
     p, n = styles.get(style_name, styles[DEFAULT_STYLE_NAME])
     return p.replace("{prompt}", positive), n + ' ' + negative
 
@@ -158,24 +223,27 @@ logo = r"""
 <center><img src='https://photo-maker.github.io/assets/logo.png' alt='PhotoMaker logo' style="width:80px; margin-bottom:10px"></center>
 """
 title = r"""
-<h1 align="center">PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding</h1>
+<h1 align="center">PhotoMaker V2: Improved ID Fidelity and Better Controllability than PhotoMaker V1</h1>
 """
 
 description = r"""
 <b>Official 🤗 Gradio demo</b> for <a href='https://github.com/TencentARC/PhotoMaker' target='_blank'><b>PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding</b></a>.<br>
+The details of PhotoMaker V2 can be found in 
 <br>
-For stylization, you could use our other gradio demo [PhotoMaker-Style](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style).
+<br>
+For previous version of PhotoMaker, you could use our original gradio demos [PhotoMaker](https://huggingface.co/spaces/TencentARC/PhotoMaker) and [PhotoMaker-Style](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style).
 <br>
 ❗️❗️❗️[<b>Important</b>] Personalization steps:<br>
 1️⃣ Upload images of someone you want to customize. One image is ok, but more is better.  Although we do not perform face detection, the face in the uploaded image should <b>occupy the majority of the image</b>.<br>
 2️⃣ Enter a text prompt, making sure to <b>follow the class word</b> you want to customize with the <b>trigger word</b>: `img`, such as: `man img` or `woman img` or `girl img`.<br>
 3️⃣ Choose your preferred style template.<br>
-4️⃣ Click the <b>Submit</b> button to start customizing.
+4️⃣ <b>(Optional: but new feature)</b> Select the ‘Enable Drawing Doodle...’ option and draw on the canvas<br>
+5️⃣ Click the <b>Submit</b> button to start customizing.
 """
 
 article = r"""
 
-If PhotoMaker is helpful, please help to ⭐ the <a href='https://github.com/TencentARC/PhotoMaker' target='_blank'>Github Repo</a>. Thanks! 
+If PhotoMaker V2 is helpful, please help to ⭐ the <a href='https://github.com/TencentARC/PhotoMaker' target='_blank'>Github Repo</a>. Thanks! 
 [![GitHub Stars](https://img.shields.io/github/stars/TencentARC/PhotoMaker?style=social)](https://github.com/TencentARC/PhotoMaker)
 ---
 📝 **Citation**
@@ -201,13 +269,12 @@ If you have any questions, please feel free to reach me out at <b>zhenli1031@gma
 
 tips = r"""
 ### Usage tips of PhotoMaker
-1. Upload more photos of the person to be customized to **improve ID fidelty**. If the input is Asian face(s), maybe consider adding 'asian' before the class word, e.g., `asian woman img`
-2. When stylizing, does the generated face look too realistic? Try switching to our **other gradio demo** [PhotoMaker-Style](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style). Adjust the **Style strength** to 30-50, the larger the number, the less ID fidelty, but the stylization ability will be better.
-3. For **faster** speed, reduce the number of generated images and sampling steps. However, please note that reducing the sampling steps may compromise the ID fidelity.
+1. Upload **more photos**of the person to be customized to **improve ID fidelty**.
+2. If you find that the image quality is poor when using doodle for control, you can reduce the conditioning scale and factor of the adapter.
+Besides, you could enlarge the ratio for more consistency of your doodle. <br>
+If you have any issues, leave the issue in the discussion page of the space. For a more stable (queue-free) experience, you can duplicate the space.
 """
 # We have provided some generate examples and comparisons at: [this website]().
-# 3. Don't make the prompt too long, as we will trim it if it exceeds 77 tokens. 
-# 4. When generating realistic photos, if it's not real enough, try switching to our other gradio application [PhotoMaker-Realistic]().
 
 css = '''
 .gradio-container {width: 85% !important}
@@ -237,6 +304,36 @@ with gr.Blocks(css=css) as demo:
             aspect_ratio = gr.Dropdown(label="Output aspect ratio", choices=ASPECT_RATIO_LABELS, value=DEFAULT_ASPECT_RATIO)
             submit = gr.Button("Submit")
 
+            enable_doodle = gr.Checkbox(
+                label="Enable Drawing Doodle for Control", value=enable_doodle_arg,
+                info="After enabling this option, PhotoMaker will generate content based on your doodle on the canvas, driven by the T2I-Adapter (Quality may be decreased)",
+            )
+            with gr.Accordion("T2I-Adapter-Doodle (Optional)", visible=False) as doodle_space:
+                with gr.Row():
+                    sketch_image = gr.Sketchpad(
+                        label="Canvas",
+                        type="pil",
+                        crop_size=[1024,1024],
+                        layers=False,
+                        canvas_size=(350, 350),
+                        brush=gr.Brush(default_size=5, colors=["#000000"], color_mode="fixed")
+                    )
+                    with gr.Group():
+                        adapter_conditioning_scale = gr.Slider(
+                            label="Adapter conditioning scale",
+                            minimum=0.5,
+                            maximum=1,
+                            step=0.1,
+                            value=0.7,
+                        )
+                        adapter_conditioning_factor = gr.Slider(
+                            label="Adapter conditioning factor",
+                            info="Fraction of timesteps for which adapter should be applied",
+                            minimum=0.5,
+                            maximum=1,
+                            step=0.1,
+                            value=0.8,
+                        )
             with gr.Accordion(open=False, label="Advanced Options"):
                 negative_prompt = gr.Textbox(
                     label="Negative Prompt", 
@@ -285,6 +382,24 @@ with gr.Blocks(css=css) as demo:
 
         files.upload(fn=swap_to_gallery, inputs=files, outputs=[uploaded_files, clear_button, files])
         remove_and_reupload.click(fn=remove_back_to_files, outputs=[uploaded_files, clear_button, files])
+        enable_doodle.select(fn=change_doodle_space, inputs=enable_doodle, outputs=doodle_space)
+
+        input_list = [
+            files, 
+            prompt, 
+            negative_prompt, 
+            aspect_ratio, 
+            style, 
+            num_steps, 
+            style_strength_ratio, 
+            num_outputs, 
+            guidance_scale, 
+            seed,
+            enable_doodle,
+            sketch_image,
+            adapter_conditioning_scale,
+            adapter_conditioning_factor
+        ]
 
         submit.click(
             fn=remove_tips,
@@ -297,7 +412,7 @@ with gr.Blocks(css=css) as demo:
             api_name=False,
         ).then(
             fn=generate_image,
-            inputs=[files, prompt, negative_prompt, aspect_ratio, style, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed],
+            inputs=input_list,
             outputs=[gallery, usage_tips]
         )
 

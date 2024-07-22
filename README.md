@@ -10,17 +10,17 @@
 ## PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding  [![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-md-dark.svg)](https://huggingface.co/papers/2312.04461)
 [[Paper](https://huggingface.co/papers/2312.04461)] &emsp; [[Project Page](https://photo-maker.github.io)] &emsp; [[Model Card](https://huggingface.co/TencentARC/PhotoMaker)] <br>
 
-[[🤗 Demo (Realistic)](https://huggingface.co/spaces/TencentARC/PhotoMaker)] &emsp; [[🤗 Demo (Stylization)](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style)] <br>
+[[💥New 🤗 Demo (PhotoMaker V2)](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2)] &emsp; [[🤗 Demo (Realistic)](https://huggingface.co/spaces/TencentARC/PhotoMaker)] &emsp; [[🤗 Demo (Stylization)](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style)] <br>
 
 [[Replicate Demo (Realistic)](https://replicate.com/jd7h/photomaker)] &emsp; [[Replicate Demo (Stylization)](https://replicate.com/yorickvp/photomaker-style)] <be>
 
-If the ID fidelity is not enough for you, please try our [stylization application](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style), you may be pleasantly surprised.
+If the ID fidelity is not enough for you, please try our [PhotoMaker V2](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2) or [stylization application](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style), you may be pleasantly surprised.
+
+🥳 We release PhotoMaker V2. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo.
 </div>
 
 
 ---
-Official implementation of **[PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding](https://huggingface.co/papers/2312.04461)**.
-
 
 ### 🌠  **Key Features:**
 
@@ -41,8 +41,9 @@ Now we know the implementation of **Replicate**, **Windows**, **ComfyUI**, and *
 
 
 ## 🚩 **New Features/Updates**
-- ✅ Jan. 20, 2024. An **important** note: For those GPUs that do not support bfloat16, please change [this line](https://github.com/TencentARC/PhotoMaker/blob/6ec44fc13909d64a65c635b9e3b6f238eb1de9fe/gradio_demo/app.py#L39) to `torch_dtype = torch.float16`, the speed will be **greatly improved** (1min/img (before) vs. 14s/img (after) on V100). The minimum GPU memory requirement for PhotoMaker is **11G** (Please refer to [this link](https://github.com/TencentARC/PhotoMaker/discussions/114) for saving GPU memory).
-- ✅ Jan. 15, 2024. We release PhotoMaker.
+- ✅ July 20, 2024. 💥 We release PhotoMaker V2 with **improved ID fidelity**. At the same time, it still maintains the generation quality, editability, and compatibility with any plugins that PhotoMaker V1 offers. We have also provided scripts for integration with [ControlNet](./inference_scripts/inference_pmv2_contronet.py), [T2I-Adapter](./inference_scripts/inference_pmv2_t2i_adapter.py), and [IP-Adapter](./inference_scripts/inference_pmv2_ip_adapter.py) to offer excellent control capabilities. Users can further customize scripts for upgrades, such as combining with LCM for acceleration or integrating with IP-Adapter-FaceID or InstantID to further improve ID fidelity. We will release technical report of PhotoMaker V2 soon. Please refer to [this doc](./README_pmv2.md) for a quick preview. 
+- ✅ January 20, 2024. An **important** note: For those GPUs that do not support bfloat16, please change [this line](https://github.com/TencentARC/PhotoMaker/blob/6ec44fc13909d64a65c635b9e3b6f238eb1de9fe/gradio_demo/app.py#L39) to `torch_dtype = torch.float16`, the speed will be **greatly improved** (1min/img (before) vs. 14s/img (after) on V100). The minimum GPU memory requirement for PhotoMaker is **11G** (Please refer to [this link](https://github.com/TencentARC/PhotoMaker/discussions/114) for saving GPU memory).
+- ✅ January 15, 2024. We release PhotoMaker.
 
 ---
 
@@ -240,6 +241,7 @@ Provided by [@Gradio](https://twitter.com/Gradio/status/1747683500495691942)
 # 🤗 Acknowledgements
 - PhotoMaker is co-hosted by Tencent ARC Lab and Nankai University [MCG-NKU](https://mmcheng.net/cmm/).
 - Inspired from many excellent demos and repos, including [IP-Adapter](https://github.com/tencent-ailab/IP-Adapter), [multimodalart/Ip-Adapter-FaceID](https://huggingface.co/spaces/multimodalart/Ip-Adapter-FaceID), [FastComposer](https://github.com/mit-han-lab/fastcomposer), and [T2I-Adapter](https://github.com/TencentARC/T2I-Adapter). Thanks for their great work!
+- Thanks to the [HunyuanDiT](https://github.com/Tencent/HunyuanDiT) team for their generous support and suggestions!
 - Thanks to the Venus team in Tencent PCG for their feedback and suggestions.
 - Thanks to the HuggingFace team for their generous support! 
 

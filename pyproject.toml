@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "photomaker"
-version = "0.1.0"
+version = "0.2.0"
 description = "PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding"
 authors = ["Li, Zhen", "Cao, Mingdeng", "Wang, Xintao", "Qi, Zhongang", "Cheng, Ming-Ming", "Shan, Ying"]
 license = "Apache-2.0"
