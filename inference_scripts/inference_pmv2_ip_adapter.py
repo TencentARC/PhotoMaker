@@ -30,7 +30,7 @@ if device == "mps":
 output_dir = "./outputs"
 os.makedirs(output_dir, exist_ok=True)
 
-photomaker_path = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v2.bin", repo_type="model")
+photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker-V2", filename="photomaker-v2.bin", repo_type="model")
 
 prompt = "portrait photo of a woman img, colorful, perfect face, best quality"
 negative_prompt = "(asymmetry, worst quality, low quality, illustration), open mouth"
