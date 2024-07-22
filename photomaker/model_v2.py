@@ -6,7 +6,7 @@ import torch.nn as nn
 from transformers.models.clip.modeling_clip import CLIPVisionModelWithProjection
 from transformers.models.clip.configuration_clip import CLIPVisionConfig
 
-from . import FacePerceiverResampler
+from .resampler import FacePerceiverResampler
 
 VISION_CONFIG_DICT = {
     "hidden_size": 1024,
