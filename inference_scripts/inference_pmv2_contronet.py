@@ -32,7 +32,7 @@ if device == "mps":
 output_dir = "./outputs"
 os.makedirs(output_dir, exist_ok=True)
 
-photomaker_path = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v2.bin", repo_type="model")
+photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker-V2", filename="photomaker-v2.bin", repo_type="model")
 
 openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
 controlnet_pose_model = "thibaud/controlnet-openpose-sdxl-1.0"
