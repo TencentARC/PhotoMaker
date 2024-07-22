@@ -10,13 +10,13 @@
 ## PhotoMaker: Customizing Realistic Human Photos via Stacked ID Embedding  [![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-md-dark.svg)](https://huggingface.co/papers/2312.04461)
 [[Paper](https://huggingface.co/papers/2312.04461)] &emsp; [[Project Page](https://photo-maker.github.io)] &emsp; [[Model Card](https://huggingface.co/TencentARC/PhotoMaker)] <br>
 
-[[💥New 🤗 Demo (PhotoMaker V2)](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2)] &emsp; [[🤗 Demo (Realistic)](https://huggingface.co/spaces/TencentARC/PhotoMaker)] &emsp; [[🤗 Demo (Stylization)](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style)] <br>
+[[💥New 🤗 **Demo (PhotoMaker V2)**](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2)] &emsp; [[🤗 Demo (Realistic)](https://huggingface.co/spaces/TencentARC/PhotoMaker)] &emsp; [[🤗 Demo (Stylization)](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style)] <br>
 
 [[Replicate Demo (Realistic)](https://replicate.com/jd7h/photomaker)] &emsp; [[Replicate Demo (Stylization)](https://replicate.com/yorickvp/photomaker-style)] <be>
 
 If the ID fidelity is not enough for you, please try our [PhotoMaker V2](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2) or [stylization application](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style), you may be pleasantly surprised.
 
-🥳 We release PhotoMaker V2. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo.
+🥳 We release **PhotoMaker V2**. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo.
 </div>
 
 
