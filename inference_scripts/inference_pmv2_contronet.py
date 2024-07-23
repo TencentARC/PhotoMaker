@@ -61,9 +61,9 @@ pipe = PhotoMakerStableDiffusionXLControlNetPipeline.from_pretrained(
 
 ### Load PhotoMaker checkpoint
 pipe.load_photomaker_adapter(
-    os.path.dirname(photomaker_path),
+    os.path.dirname(photomaker_ckpt),
     subfolder="",
-    weight_name=os.path.basename(photomaker_path),
+    weight_name=os.path.basename(photomaker_ckpt),
     trigger_word="img"  # define the trigger word
 )     
 ### Also can cooperate with other LoRA modules
