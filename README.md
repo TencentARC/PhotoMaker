@@ -16,7 +16,7 @@
 
 If the ID fidelity is not enough for you, please try our [PhotoMaker V2](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2) or [stylization application](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style), you may be pleasantly surprised.
 
-🥳 We release **PhotoMaker V2**. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo.
+🥳 We release **PhotoMaker V2**. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo. For PhotoMaker V2 ComfyUI nodes, please refer to the [Related Resources](https://github.com/TencentARC/PhotoMaker?tab=readme-ov-file#related-resources) 
 </div>
 
 
@@ -221,6 +221,11 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 2. https://github.com/ZHO-ZHO-ZHO/ComfyUI-PhotoMaker
 3. https://github.com/StartHua/Comfyui-Mine-PhotoMaker
 4. https://github.com/shiimizu/ComfyUI-PhotoMaker
+
+### ComfyUI (for PhotoMaker V2):
+1. https://github.com/shiimizu/ComfyUI-PhotoMaker-Plus
+2. https://github.com/edwios/ComfyUI-PhotoMakerV2-ZHO/tree/main
+3. https://openart.ai/workflows/shalacai/photomakerv2/fttT4ztRM85JxBJ2eUyr
 
 ### Purely C/C++/CUDA version of PhotoMaker:
 1. [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp/pull/179) by [@bssrdf](https://github.com/bssrdf).
