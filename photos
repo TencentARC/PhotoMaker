@@ -1,0 +1,88 @@
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+from typing import List
+from pydantic import BaseModel
+from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+
+app = FastAPI()
+
+# Настройка базы данных
+DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Модели SQLAlchemy
+Base = declarative_base()
+
+class PhotoModel(Base):
+    __tablename__ = "photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    link = Column(String, index=True)
+    description = Column(Text)
+    tags = Column(Text)
+
+Base.metadata.create_all(bind=engine)
+
+# Модели Pydantic
+class Photo(BaseModel):
+    link: str
+    description: str
+    tags: List[str] = []
+
+# Зависимость для получения сессии SQLAlchemy
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Пример CRUD операций для фотографий
+@app.post("/photos/", response_model=Photo)
+def create_photo(photo: Photo, db: Session = Depends(get_db)):
+    db_photo = PhotoModel(**photo.dict())
+    db.add(db_photo)
+    db.commit()
+    db.refresh(db_photo)
+    return db_photo
+
+@app.delete("/photos/{photo_id}/")
+def delete_photo(photo_id: int, db: Session = Depends(get_db)):
+    db_photo = db.query(PhotoModel).get(photo_id)
+    if db_photo is None:
+        raise HTTPException(status_code=404, detail="Фотография не найдена")
+    db.delete(db_photo)
+    db.commit()
+    return {"message": "Фотография успешно удалена"}
+
+@app.put("/photos/{photo_id}/", response_model=Photo)
+def edit_photo(photo_id: int, photo: Photo, db: Session = Depends(get_db)):
+    db_photo = db.query(PhotoModel).get(photo_id)
+    if db_photo is None:
+        raise HTTPException(status_code=404, detail="Фотография не найдена")
+    for key, value in photo.dict().items():
+        setattr(db_photo, key, value)
+    db.commit()
+    db.refresh(db_photo)
+    return db_photo
+
+@app.get("/photos/{photo_id}/", response_model=Photo)
+def get_photo(photo_id: int, db: Session = Depends(get_db)):
+    db_photo = db.query(PhotoModel).get(photo_id)
+    if db_photo is None:
+        raise HTTPException(status_code=404, detail="Фотография не найдена")
+    return db_photo
+
+# Операция добавления тега к фотографии
+@app.post("/photos/{photo_id}/add_tag/")
+def add_tag_to_photo(photo_id: int, tag: str, db: Session = Depends(get_db)):
+    db_photo = db.query(PhotoModel).get(photo_id)
+    if db_photo is None:
+        raise HTTPException(status_code=404, detail="Фотография не найдена")
+    db_photo.tags.append(tag)
+    db.commit()
+    db.refresh(db_photo)
+    return {"message": f"Тег '{tag}' добавлен к фотографии {photo_id}"}
