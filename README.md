@@ -12,9 +12,11 @@
 
 [[💥New 🤗 **Demo (PhotoMaker V2)**](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2)] &emsp; [[🤗 Demo (Realistic)](https://huggingface.co/spaces/TencentARC/PhotoMaker)] &emsp; [[🤗 Demo (Stylization)](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style)] <br>
 
-[[Replicate Demo (Realistic)](https://replicate.com/jd7h/photomaker)] &emsp; [[Replicate Demo (Stylization)](https://replicate.com/yorickvp/photomaker-style)] <be>
+[[Replicate Demo (Realistic)](https://replicate.com/jd7h/photomaker)] &emsp; [[Replicate Demo (Stylization)](https://replicate.com/yorickvp/photomaker-style)] &emsp; [[Jittor version](https://github.com/NK-JittorCV/nk-diffusion)]  <be>
 
-If the ID fidelity is not enough for you, please try our [PhotoMaker V2](https://huggingface.co/spaces/TencentARC/PhotoMaker-V2) or [stylization application](https://huggingface.co/spaces/TencentARC/PhotoMaker-Style), you may be pleasantly surprised.
+<img src="https://github.com/user-attachments/assets/d7d99f0b-2f1e-4d13-8ca8-e08685bcda2a" height=40>
+
+**PhotoMaker-V2** is supported by the [HunyuanDiT](https://github.com/Tencent/HunyuanDiT) team. 
 
 🥳 We release **PhotoMaker V2**. Please refer to [comparisons](./README_pmv2.md) between PhotoMaker V1, PhotoMaker V2, IP-Adapter-FaceID-plus-V2, and InstantID. Please watch [this video](https://photo-maker.github.io/assets/demo_pm_v2_full.mp4) for how to use our demo. For PhotoMaker V2 ComfyUI nodes, please refer to the [Related Resources](https://github.com/TencentARC/PhotoMaker?tab=readme-ov-file#related-resources) 
 </div>
