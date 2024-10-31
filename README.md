@@ -228,6 +228,7 @@ If you want to run it on MAC, you should follow [this Instruction](MacGPUEnv.md)
 1. https://github.com/shiimizu/ComfyUI-PhotoMaker-Plus
 2. https://github.com/edwios/ComfyUI-PhotoMakerV2-ZHO/tree/main
 3. https://openart.ai/workflows/shalacai/photomakerv2/fttT4ztRM85JxBJ2eUyr
+4. https://github.com/zhangp365/ComfyUI_photomakerV2_native
 
 ### Purely C/C++/CUDA version of PhotoMaker:
 1. [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp/pull/179) by [@bssrdf](https://github.com/bssrdf).
