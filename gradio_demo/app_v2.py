@@ -12,7 +12,7 @@ from huggingface_hub import hf_hub_download
 import spaces
 import gradio as gr
 
-from photomaker import PhotoMakerStableDiffusionXLAdapterPipeline 
+from photomaker import PhotoMakerStableDiffusionXLAdapterPipeline
 from photomaker import FaceAnalysis2, analyze_faces
 
 from style_template import styles
@@ -164,6 +164,7 @@ def generate_image(
         generator=generator,
         guidance_scale=guidance_scale,
         pag_scale=pag_scale,
+        pag_applied_layers=['mid'],
         id_embeds=id_embeds,
         image=sketch_image,
         adapter_conditioning_scale=adapter_conditioning_scale,
