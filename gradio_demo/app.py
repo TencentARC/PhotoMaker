@@ -35,7 +35,7 @@ ASPECT_RATIO_LABELS = list(aspect_ratios)
 DEFAULT_ASPECT_RATIO = ASPECT_RATIO_LABELS[0]
 
 # download PhotoMaker checkpoint to cache
-photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v2.bin", repo_type="model")
+photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v1.bin", repo_type="model")
 
 torch_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 if device == "mps":
@@ -54,7 +54,7 @@ pipe.load_photomaker_adapter(
     subfolder="",
     weight_name=os.path.basename(photomaker_ckpt),
     trigger_word="img",
-    pm_version="v2",
+    pm_version="v1",
 )
 pipe.id_encoder.to(device)
 
@@ -64,7 +64,7 @@ pipe.fuse_lora()
 pipe.to(device)
 
 @spaces.GPU
-def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, style_name, num_steps, style_strength_ratio, num_outputs, guidance_scale, pag_scale, seed, progress=gr.Progress(track_tqdm=True)):
+def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, style_name, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed, progress=gr.Progress(track_tqdm=True)):
     # check the trigger word
     image_token_id = pipe.tokenizer.convert_tokens_to_ids(pipe.trigger_word)
     input_ids = pipe.tokenizer.encode(prompt)
@@ -107,8 +107,6 @@ def generate_image(upload_images, prompt, negative_prompt, aspect_ratio_name, st
         start_merge_step=start_merge_step,
         generator=generator,
         guidance_scale=guidance_scale,
-        pag_scale=pag_scale,
-        pag_applied_layers=['mid'],
     ).images
     return images, gr.update(visible=True)
 
@@ -273,13 +271,6 @@ with gr.Blocks(css=css) as demo:
                     step=0.1,
                     value=5,
                 )
-                pag_scale = gr.Slider(
-                    label="PAG scale",
-                    minimum=0.0,
-                    maximum=10.0,
-                    step=0.1,
-                    value=3.0,
-                )
                 seed = gr.Slider(
                     label="Seed",
                     minimum=0,
@@ -306,7 +297,7 @@ with gr.Blocks(css=css) as demo:
             api_name=False,
         ).then(
             fn=generate_image,
-            inputs=[files, prompt, negative_prompt, aspect_ratio, style, num_steps, style_strength_ratio, num_outputs, guidance_scale, pag_scale, seed],
+            inputs=[files, prompt, negative_prompt, aspect_ratio, style, num_steps, style_strength_ratio, num_outputs, guidance_scale, seed],
             outputs=[gallery, usage_tips]
         )
 
