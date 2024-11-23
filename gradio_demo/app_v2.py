@@ -85,6 +85,7 @@ def generate_image(
     style_strength_ratio, 
     num_outputs, 
     guidance_scale, 
+    pag_scale,
     seed, 
     use_doodle,
     sketch_image,
@@ -162,6 +163,8 @@ def generate_image(
         start_merge_step=start_merge_step,
         generator=generator,
         guidance_scale=guidance_scale,
+        pag_scale=pag_scale,
+        pag_applied_layers=['mid'],
         id_embeds=id_embeds,
         image=sketch_image,
         adapter_conditioning_scale=adapter_conditioning_scale,
@@ -368,6 +371,13 @@ with gr.Blocks(css=css) as demo:
                     step=0.1,
                     value=5,
                 )
+                pag_scale = gr.Slider(
+                    label="PAG scale",
+                    minimum=0.0,
+                    maximum=10.0,
+                    step=0.1,
+                    value=3.0,
+                )
                 seed = gr.Slider(
                     label="Seed",
                     minimum=0,
@@ -394,6 +404,7 @@ with gr.Blocks(css=css) as demo:
             style_strength_ratio, 
             num_outputs, 
             guidance_scale, 
+            pag_scale,
             seed,
             enable_doodle,
             sketch_image,
