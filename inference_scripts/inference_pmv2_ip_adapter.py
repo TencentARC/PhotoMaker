@@ -39,7 +39,7 @@ negative_prompt = "(asymmetry, worst quality, low quality, illustration), open m
 ### Load base model
 pipe = PhotoMakerStableDiffusionXLPipeline.from_pretrained(
     "SG161222/RealVisXL_V4.0", torch_dtype=torch_dtype,
-).to("cuda")
+).to(device)
 
 pipe.load_ip_adapter("h94/IP-Adapter", subfolder="sdxl_models", weight_name="ip-adapter_sdxl.bin")
 pipe.set_ip_adapter_scale(0.7)
